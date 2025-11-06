@@ -36,3 +36,17 @@ func SubscribeBooks(args *ws.Args, handler HandlerBooks, handlerError ws.Handler
 
 	return NewPublic(simulated).Subscribe(args, h, handlerError)
 }
+
+// default unsubscribe
+func UnSubscribeBooks(args *ws.Args, handler HandlerBooks, handlerError ws.HandlerError, simulated bool) error {
+	h := func(message []byte) {
+		var event EventBooks
+		if err := json.Unmarshal(message, &event); err != nil {
+			handlerError(err)
+			return
+		}
+		handler(event)
+	}
+
+	return NewPublic(simulated).Unsubscribe(args, h, handlerError)
+}
