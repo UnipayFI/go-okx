@@ -11,7 +11,7 @@ import (
 func main() {
 	param := &public.OpenInterestParam{
 		InstType: api.InstTypeSWAP,
-		InstId:   "ZBT-USDT-SWAP",
+		InstId:   "BTC-USDT-SWAP",
 	}
 	req, resp := public.NewOpenInterest(param)
 	if err := rest.TestClient.Do(req, resp); err != nil {
