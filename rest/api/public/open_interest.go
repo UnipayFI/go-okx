@@ -26,5 +26,6 @@ type OpenInterest struct {
 	InstId   string `json:"instId"`
 	Oi       string `json:"oi"`
 	OiCcy    string `json:"oiCcy"`
+	OiUsd    string `json:"oiUsd"`
 	Ts       int64  `json:"ts,string"`
 }
