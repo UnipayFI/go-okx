@@ -18,7 +18,7 @@ type OpenInterestParam struct {
 
 type OpenInterestResponse struct {
 	api.Response
-	List []OpenInterest
+	Data []OpenInterest `json:"data"`
 }
 
 type OpenInterest struct {
