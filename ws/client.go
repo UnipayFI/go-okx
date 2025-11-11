@@ -87,7 +87,6 @@ func (c *Client) messageLoop(conn *websocket.Conn, operate *Operate) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Printf("panic recovered:%+v, stack: %s", err, string(debug.Stack()))
-			conn.Close()
 		}
 		c.messageLoop(conn, operate)
 	}()
