@@ -1,7 +1,9 @@
 package ws
 
 import (
+	"log"
 	"net/http"
+	"runtime/debug"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -82,7 +84,13 @@ func (c *Client) MessageOperate(conn *websocket.Conn, operate *Operate) error {
 
 // loop websocket message
 func (c *Client) messageLoop(conn *websocket.Conn, operate *Operate) {
-	defer conn.Close()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("panic recovered:%+v, stack: %s", err, string(debug.Stack()))
+			conn.Close()
+		}
+		c.messageLoop(conn, operate)
+	}()
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
