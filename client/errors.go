@@ -1,6 +1,9 @@
 package client
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // APIError is the error envelope OKX returns when a request fails. OKX codes are
 // strings; "0" means success and anything else is an error. For batch order
@@ -23,7 +26,39 @@ func (e APIError) IsValid() bool {
 }
 
 // IsAPIError reports whether err is an OKX *APIError.
+//
+// Deprecated: this is a bare type assertion and does not unwrap. Prefer
+// AsAPIError, which walks the error chain.
 func IsAPIError(err error) bool {
 	_, ok := err.(*APIError)
 	return ok
+}
+
+// AsAPIError extracts the OKX APIError carried by err, walking the error chain
+// (errors.As). It matches whether the chain holds a *APIError (as the SDK's
+// request layer returns) or a value APIError (as a caller's %w-wrapping may
+// embed), so it is robust to either wrapping style. Returns (nil, false) when
+// err carries no APIError.
+func AsAPIError(err error) (*APIError, bool) {
+	if err == nil {
+		return nil, false
+	}
+	var ptr *APIError
+	if errors.As(err, &ptr) {
+		return ptr, true
+	}
+	var val APIError
+	if errors.As(err, &val) {
+		return &val, true
+	}
+	return nil, false
+}
+
+// IsCode reports whether err carries an OKX APIError with the given code (e.g.
+// "51400" for "order does not exist"). It unwraps via AsAPIError, so it works on
+// wrapped errors — the typical use is collapsing an idempotent failure (cancel
+// of an already-gone order) to a no-op.
+func IsCode(err error, code string) bool {
+	apiErr, ok := AsAPIError(err)
+	return ok && apiErr.Code == code
 }

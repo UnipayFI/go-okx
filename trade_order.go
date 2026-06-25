@@ -2,12 +2,44 @@ package okx
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/UnipayFI/go-okx/request"
 	"github.com/shopspring/decimal"
 )
+
+// MaxClOrdIDLen is the maximum length OKX accepts for a client order id
+// (clOrdId). Longer ids are rejected with code 51000 ("Parameter clOrdId
+// error"). OKX also requires the id to be alphanumeric (letters and digits
+// only); see ValidateClOrdID.
+const MaxClOrdIDLen = 32
+
+// MaxBatchOrders is the maximum number of orders OKX accepts in a single
+// batch-orders / cancel-batch-orders / amend-batch-orders request (REST) and in
+// the WS batch-* ops. Larger batches are rejected; callers should chunk by this.
+const MaxBatchOrders = 20
+
+// ValidateClOrdID reports whether clOrdId satisfies OKX's client-order-id rule:
+// at most MaxClOrdIDLen characters, letters and digits only (case-sensitive). It
+// lets callers fail fast instead of round-tripping to a 51000 rejection. An
+// empty clOrdId is allowed (the field is optional) and reported valid.
+func ValidateClOrdID(clOrdId string) error {
+	if clOrdId == "" {
+		return nil
+	}
+	if len(clOrdId) > MaxClOrdIDLen {
+		return fmt.Errorf("clOrdId %q too long: %d > %d", clOrdId, len(clOrdId), MaxClOrdIDLen)
+	}
+	for i := 0; i < len(clOrdId); i++ {
+		c := clOrdId[i]
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
+			return fmt.Errorf("clOrdId %q has invalid character %q (must be alphanumeric)", clOrdId, string(c))
+		}
+	}
+	return nil
+}
 
 // AttachAlgoOrd is an attached take-profit / stop-loss algo order that can be
 // supplied when placing or amending an order. It is used both in the request

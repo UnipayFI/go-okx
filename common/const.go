@@ -32,6 +32,18 @@ const (
 
 	DEFAULT_KEEP_ALIVE_INTERVAL = 25 * time.Second
 	DEFAULT_KEEP_ALIVE_TIMEOUT  = 60 * time.Second
+
+	// DEFAULT_WS_READ_TIMEOUT bounds how long a steady-state stream read may
+	// block with no inbound frame before it is treated as a dead (half-open)
+	// connection. OKX disconnects a silent socket after ~30s and the client
+	// pings every DEFAULT_KEEP_ALIVE_INTERVAL, so a healthy stream always sees
+	// traffic well within this window; exceeding it means the peer is gone.
+	DEFAULT_WS_READ_TIMEOUT = DEFAULT_KEEP_ALIVE_TIMEOUT
+
+	// DEFAULT_WS_WRITE_TIMEOUT bounds a single WS write (subscribe op, keepalive
+	// ping). A write that blocks past this on a half-open socket is treated as a
+	// failed connection.
+	DEFAULT_WS_WRITE_TIMEOUT = 10 * time.Second
 )
 
 // Network identifies which OKX environment a client targets. OKX has no separate

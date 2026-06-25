@@ -23,6 +23,12 @@ type WsClient interface {
 	GetSignFn() SignFn
 	GetLogger() log.Logger
 	GetDialer() *websocket.Dialer
+	// GetReadTimeout bounds the idle time a steady-state read may block with no
+	// inbound frame before the connection is treated as dead; zero disables it.
+	GetReadTimeout() time.Duration
+	// GetWriteTimeout bounds a single WS write (subscribe op / keepalive ping);
+	// zero disables it.
+	GetWriteTimeout() time.Duration
 }
 
 // Gateway selects which OKX v5 WebSocket endpoint a subscription uses. OKX splits
@@ -126,12 +132,40 @@ func SubscribeRaw(ctx context.Context, client WsClient, gateway Gateway, private
 	return subscribeBytes(ctx, client, gateway, private, arg, cb)
 }
 
-func subscribeBytes(ctx context.Context, client WsClient, gateway Gateway, private bool, arg any, cb func(message []byte, err error)) (done chan<- struct{}, stop <-chan struct{}, err error) {
+// SubscribeManyRaw opens one connection to the gateway, logs in when private,
+// subscribes to every arg in a single "subscribe" op (OKX accepts an args array
+// on one connection), and delivers each data frame's raw bytes. The caller
+// routes each frame to its channel by inspecting the push's "arg" (decode into
+// WsPush[T] or a wsHeader-shaped struct and read Arg.Channel).
+//
+// This is the multi-channel counterpart to SubscribeRaw: a single private login
+// can serve several channels (e.g. orders + positions + account) on one
+// connection instead of one connection — and one login — per channel.
+//
+// Unlike Subscribe/SubscribeRaw it returns BIDIRECTIONAL channels, shaped for a
+// reconnect supervisor that both tears the stream down and waits on its death:
+// close done to tear the stream down; stop is closed when the reader exits (on a
+// connection error or after a requested teardown completes).
+func SubscribeManyRaw(ctx context.Context, client WsClient, gateway Gateway, private bool, args []WsArg, cb func(message []byte, err error)) (done, stop chan struct{}, err error) {
+	anyArgs := make([]any, len(args))
+	for i := range args {
+		anyArgs[i] = args[i]
+	}
+	return subscribeManyBytes(ctx, client, gateway, private, anyArgs, cb)
+}
+
+func subscribeBytes(ctx context.Context, client WsClient, gateway Gateway, private bool, arg any, cb func(message []byte, err error)) (done, stop chan struct{}, err error) {
+	return subscribeManyBytes(ctx, client, gateway, private, []any{arg}, cb)
+}
+
+func subscribeManyBytes(ctx context.Context, client WsClient, gateway Gateway, private bool, args []any, cb func(message []byte, err error)) (done, stop chan struct{}, err error) {
 	conn, _, err := client.GetDialer().DialContext(ctx, gatewayURL(client, gateway), nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	conn.SetReadLimit(10 << 20)
+	readTimeout := client.GetReadTimeout()
+	writeTimeout := client.GetWriteTimeout()
 
 	if private {
 		if err := wsLogin(client, conn); err != nil {
@@ -140,8 +174,11 @@ func subscribeBytes(ctx context.Context, client WsClient, gateway Gateway, priva
 		}
 	}
 
-	sub := wsOp{Operation: "subscribe", Args: []any{arg}}
+	sub := wsOp{Operation: "subscribe", Args: args}
 	data, _ := common.JSONMarshal(sub)
+	if writeTimeout > 0 {
+		_ = conn.SetWriteDeadline(time.Now().Add(writeTimeout))
+	}
 	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
 		conn.Close()
 		return nil, nil, err
@@ -151,7 +188,7 @@ func subscribeBytes(ctx context.Context, client WsClient, gateway Gateway, priva
 	stopC := make(chan struct{})
 	var silent atomic.Bool
 
-	go keepAlive(conn, common.DEFAULT_KEEP_ALIVE_INTERVAL)
+	go keepAlive(conn, common.DEFAULT_KEEP_ALIVE_INTERVAL, writeTimeout)
 	go func() {
 		select {
 		case <-stopC:
@@ -160,14 +197,24 @@ func subscribeBytes(ctx context.Context, client WsClient, gateway Gateway, priva
 		// Either path is an intentional teardown: silence the reader so the
 		// close-induced read error is not delivered to cb as a real error.
 		silent.Store(true)
-		unsub := wsOp{Operation: "unsubscribe", Args: []any{arg}}
+		unsub := wsOp{Operation: "unsubscribe", Args: args}
 		if b, e := common.JSONMarshal(unsub); e == nil {
+			if writeTimeout > 0 {
+				_ = conn.SetWriteDeadline(time.Now().Add(writeTimeout))
+			}
 			_ = conn.WriteMessage(websocket.TextMessage, b)
 		}
 		conn.Close()
 	}()
 	go func() {
 		for {
+			// Bound the read so a half-open (silently dropped) connection surfaces
+			// an error and the caller can reconnect, instead of blocking forever.
+			// A healthy stream always sees a frame (data or keepalive pong) within
+			// this window, which resets each iteration.
+			if readTimeout > 0 {
+				_ = conn.SetReadDeadline(time.Now().Add(readTimeout))
+			}
 			_, message, err := conn.ReadMessage()
 			if err != nil {
 				if !silent.Load() {
@@ -280,12 +327,19 @@ func wsLogin(client WsClient, conn *websocket.Conn) error {
 }
 
 // keepAlive sends OKX's literal "ping" text frame on an interval; the server
-// replies "pong" (handled in the read loop).
-func keepAlive(conn *websocket.Conn, interval time.Duration) {
+// replies "pong" (handled in the read loop). A failed write means the socket is
+// gone (or half-open), so it closes the connection to unblock the reader, which
+// then surfaces the error and lets the caller reconnect — rather than leaving
+// the reader hanging until its read deadline.
+func keepAlive(conn *websocket.Conn, interval, writeTimeout time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 	for range ticker.C {
+		if writeTimeout > 0 {
+			_ = conn.SetWriteDeadline(time.Now().Add(writeTimeout))
+		}
 		if err := conn.WriteMessage(websocket.TextMessage, []byte("ping")); err != nil {
+			conn.Close()
 			return
 		}
 	}

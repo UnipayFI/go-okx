@@ -134,6 +134,38 @@ func (s *GetBooksFullService) Do(ctx context.Context) (*OrderBook, error) {
 // MarketBar is a candlestick time granularity (e.g. "1m", "1H", "1D").
 type MarketBar string
 
+// OKX candle bar granularities. Note the case convention OKX requires: minute
+// bars are lower-case "m" while hour/day/week/month bars are upper-case
+// (H/D/W/M). The ...UTC variants align the bar boundary to 00:00 UTC instead of
+// the default Hong Kong time (UTC+8).
+const (
+	MarketBar1m  MarketBar = "1m"
+	MarketBar3m  MarketBar = "3m"
+	MarketBar5m  MarketBar = "5m"
+	MarketBar15m MarketBar = "15m"
+	MarketBar30m MarketBar = "30m"
+	MarketBar1H  MarketBar = "1H"
+	MarketBar2H  MarketBar = "2H"
+	MarketBar4H  MarketBar = "4H"
+	MarketBar6H  MarketBar = "6H"
+	MarketBar12H MarketBar = "12H"
+	MarketBar1D  MarketBar = "1D"
+	MarketBar2D  MarketBar = "2D"
+	MarketBar3D  MarketBar = "3D"
+	MarketBar1W  MarketBar = "1W"
+	MarketBar1M  MarketBar = "1M"
+	MarketBar3M  MarketBar = "3M"
+
+	MarketBar6Hutc  MarketBar = "6Hutc"
+	MarketBar12Hutc MarketBar = "12Hutc"
+	MarketBar1Dutc  MarketBar = "1Dutc"
+	MarketBar2Dutc  MarketBar = "2Dutc"
+	MarketBar3Dutc  MarketBar = "3Dutc"
+	MarketBar1Wutc  MarketBar = "1Wutc"
+	MarketBar1Mutc  MarketBar = "1Mutc"
+	MarketBar3Mutc  MarketBar = "3Mutc"
+)
+
 // Candle is one OHLCV candlestick from the market candle endpoints. The raw
 // response is an array-of-arrays with 9 columns:
 // [ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm].
