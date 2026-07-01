@@ -116,6 +116,15 @@ type Instrument struct {
 	PositionLimitAmount              decimal.Decimal    `json:"posLmtAmt"`
 	PositionLimitPercent             decimal.Decimal    `json:"posLmtPct"`
 	PreMarketSwitchTime              time.Time          `json:"preMktSwTime"`
+	// InitialPriceLimitPercent is the initial price-limit band applied during the
+	// first 10 minutes after contract listing. Empty for OPTION and EVENTS.
+	InitialPriceLimitPercent decimal.Decimal `json:"initPxLmtPct"`
+	// FloatingPriceLimitPercent is the floating price-limit band during normal
+	// trading. Empty for OPTION and EVENTS.
+	FloatingPriceLimitPercent decimal.Decimal `json:"floatPxLmtPct"`
+	// MaxPriceLimitPercent is the maximum price-limit cap (hard ceiling). Empty
+	// for OPTION and EVENTS.
+	MaxPriceLimitPercent decimal.Decimal `json:"maxPxLmtPct"`
 	// Elp (effective leverage profile) is returned only by the private
 	// GET /api/v5/account/instruments variant; it is empty on the public endpoint.
 	Elp string `json:"elp"`
