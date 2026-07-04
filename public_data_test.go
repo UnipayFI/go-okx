@@ -221,4 +221,15 @@ func TestPublicData(t *testing.T) {
 		raw := fetchRawGet(t, c, cx, "/api/v5/public/premium-history", params, false)
 		assertCovers(t, "premium-history", raw, resp)
 	}
+
+	// mm-instrument-types (SWAP)
+	{
+		params := map[string]string{"instType": string(InstTypeSwap)}
+		resp, err := c.NewGetMMInstrumentTypesService().SetInstType(InstTypeSwap).Do(cx)
+		if err != nil {
+			t.Fatalf("mm-instrument-types: %v", err)
+		}
+		raw := fetchRawGet(t, c, cx, "/api/v5/public/mm-instrument-types", params, false)
+		assertCovers(t, "mm-instrument-types", raw, resp)
+	}
 }

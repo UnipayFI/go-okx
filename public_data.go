@@ -936,3 +936,48 @@ type PremiumHistory struct {
 	Premium      decimal.Decimal `json:"premium"`
 	Timestamp    time.Time       `json:"ts"`
 }
+
+// GetMMInstrumentTypesService -- GET /api/v5/public/mm-instrument-types (public)
+//
+// Returns the MM (market-maker) program instrument-type classifications for SPOT
+// and SWAP (and FUTURES) instruments. With no filter it lists every classified
+// instrument.
+type GetMMInstrumentTypesService struct {
+	c      *Client
+	params map[string]string
+}
+
+func (c *Client) NewGetMMInstrumentTypesService() *GetMMInstrumentTypesService {
+	return &GetMMInstrumentTypesService{c: c, params: map[string]string{}}
+}
+
+// SetInstType filters by instrument type (SPOT/SWAP/FUTURES).
+func (s *GetMMInstrumentTypesService) SetInstType(instType InstType) *GetMMInstrumentTypesService {
+	s.params["instType"] = string(instType)
+	return s
+}
+
+// SetInstFamily filters by instrument family (requires instType).
+func (s *GetMMInstrumentTypesService) SetInstFamily(instFamily string) *GetMMInstrumentTypesService {
+	s.params["instFamily"] = instFamily
+	return s
+}
+
+// SetInstId filters by a single instrument id.
+func (s *GetMMInstrumentTypesService) SetInstId(instId string) *GetMMInstrumentTypesService {
+	s.params["instId"] = instId
+	return s
+}
+
+func (s *GetMMInstrumentTypesService) Do(ctx context.Context) ([]MMInstrumentType, error) {
+	req := request.Get(ctx, s.c, "/api/v5/public/mm-instrument-types", s.params)
+	return request.DoList[MMInstrumentType](req)
+}
+
+// MMInstrumentType is one instrument's MM-program classification. PairType is a
+// free-form tier label (e.g. "Type A", "Type B-Crypto", "Type B-TradFi", "FULL").
+type MMInstrumentType struct {
+	InstrumentType InstType `json:"instType"`
+	InstrumentID   string   `json:"instId"`
+	PairType       string   `json:"pairType"`
+}
