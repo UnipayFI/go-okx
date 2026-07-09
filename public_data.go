@@ -59,6 +59,13 @@ func (s *GetInstrumentsService) SetInstId(instId string) *GetInstrumentsService 
 	return s
 }
 
+// SetSeriesID filters by event-contract series id (required when instType is
+// EVENTS), e.g. "BTC-ABOVE-DAILY".
+func (s *GetInstrumentsService) SetSeriesID(seriesId string) *GetInstrumentsService {
+	s.params["seriesId"] = seriesId
+	return s
+}
+
 func (s *GetInstrumentsService) Do(ctx context.Context) ([]Instrument, error) {
 	req := request.Get(ctx, s.c, "/api/v5/public/instruments", s.params)
 	return request.DoList[Instrument](req)
@@ -110,12 +117,15 @@ type Instrument struct {
 	Freq                             string             `json:"freq"`
 	GroupID                          string             `json:"groupId"`
 	SeriesID                         string             `json:"seriesId"`
-	Method                           string             `json:"method"`
-	LongPositionRemainingQuota       decimal.Decimal    `json:"longPosRemainingQuota"`
-	ShortPositionRemainingQuota      decimal.Decimal    `json:"shortPosRemainingQuota"`
-	PositionLimitAmount              decimal.Decimal    `json:"posLmtAmt"`
-	PositionLimitPercent             decimal.Decimal    `json:"posLmtPct"`
-	PreMarketSwitchTime              time.Time          `json:"preMktSwTime"`
+	// Method is the settlement method for EVENTS. Values include "hit" (price
+	// touches the strike, settles immediately) and "between" (settle price
+	// within a range).
+	Method                      string          `json:"method"`
+	LongPositionRemainingQuota  decimal.Decimal `json:"longPosRemainingQuota"`
+	ShortPositionRemainingQuota decimal.Decimal `json:"shortPosRemainingQuota"`
+	PositionLimitAmount         decimal.Decimal `json:"posLmtAmt"`
+	PositionLimitPercent        decimal.Decimal `json:"posLmtPct"`
+	PreMarketSwitchTime         time.Time       `json:"preMktSwTime"`
 	// InitialPriceLimitPercent is the initial price-limit band applied during the
 	// first 10 minutes after contract listing. Empty for OPTION and EVENTS.
 	InitialPriceLimitPercent decimal.Decimal `json:"initPxLmtPct"`
@@ -125,6 +135,14 @@ type Instrument struct {
 	// MaxPriceLimitPercent is the maximum price-limit cap (hard ceiling). Empty
 	// for OPTION and EVENTS.
 	MaxPriceLimitPercent decimal.Decimal `json:"maxPxLmtPct"`
+	// CapStrike is the maximum expiration value that leads to a YES outcome for
+	// the "between" settlement method (EVENTS only). "INF" means no upper bound
+	// (the topmost bracket); empty for non-"between" methods.
+	CapStrike string `json:"capStrike"`
+	// HitDirection is the hit direction, applicable only when the settlement
+	// method is "hit" (EVENTS only). "up": price hit from below; "dn": price hit
+	// from above; empty for non-"hit" methods.
+	HitDirection string `json:"hitDir"`
 	// Elp (effective leverage profile) is returned only by the private
 	// GET /api/v5/account/instruments variant; it is empty on the public endpoint.
 	Elp string `json:"elp"`

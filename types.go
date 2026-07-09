@@ -14,6 +14,7 @@ const (
 	InstTypeSwap    InstType = "SWAP"
 	InstTypeFutures InstType = "FUTURES"
 	InstTypeOption  InstType = "OPTION"
+	InstTypeEvents  InstType = "EVENTS"
 	InstTypeAny     InstType = "ANY"
 )
 

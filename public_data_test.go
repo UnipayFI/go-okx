@@ -24,6 +24,21 @@ func TestPublicData(t *testing.T) {
 		assertCovers(t, "instruments", raw, resp)
 	}
 
+	// instruments (EVENTS) — exercises the event-contract settlement fields
+	// (method/capStrike/hitDir). EVENTS requires a seriesId; tolerate 50014
+	// (seriesId omitted) and 51001 (no event contracts listed) when none is
+	// available in this environment.
+	{
+		params := map[string]string{"instType": string(InstTypeEvents)}
+		resp, err := c.NewGetInstrumentsService(InstTypeEvents).Do(cx)
+		if err != nil && !tolerable(t, "instruments EVENTS", err, "50014", "51001") {
+			t.Fatalf("instruments EVENTS: %v", err)
+		} else if err == nil && len(resp) > 0 {
+			raw := fetchRawGet(t, c, cx, "/api/v5/public/instruments", params, false)
+			assertCovers(t, "instruments EVENTS", raw, resp)
+		}
+	}
+
 	// estimated-price — fetch a live FUTURES instId, tolerate 51001 (not yet
 	// within the estimation window / not found).
 	{
