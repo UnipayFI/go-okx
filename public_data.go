@@ -73,33 +73,38 @@ func (s *GetInstrumentsService) Do(ctx context.Context) ([]Instrument, error) {
 
 // Instrument is a single tradable instrument.
 type Instrument struct {
-	InstrumentType                   InstType           `json:"instType"`
-	InstrumentID                     string             `json:"instId"`
-	InstrumentIDCode                 int64              `json:"instIdCode"`
-	Underlying                       string             `json:"uly"`
-	InstrumentFamily                 string             `json:"instFamily"`
-	Category                         string             `json:"category"`
-	InstrumentCategory               string             `json:"instCategory"`
-	BaseCurrency                     string             `json:"baseCcy"`
-	QuoteCurrency                    string             `json:"quoteCcy"`
-	SettleCurrency                   string             `json:"settleCcy"`
-	ContractValue                    decimal.Decimal    `json:"ctVal"`
-	ContractMultiplier               decimal.Decimal    `json:"ctMult"`
-	ContractValueCurrency            string             `json:"ctValCcy"`
-	OptionType                       OptType            `json:"optType"`
-	Strike                           decimal.Decimal    `json:"stk"`
-	ListTime                         time.Time          `json:"listTime"`
-	AuctionEndTime                   time.Time          `json:"auctionEndTime"`
-	ContinuousTradeSwitchTime        time.Time          `json:"contTdSwTime"`
-	OpenType                         publicOpenType     `json:"openType"`
-	ExpiryTime                       time.Time          `json:"expTime"`
-	Leverage                         decimal.Decimal    `json:"lever"`
-	TickSize                         decimal.Decimal    `json:"tickSz"`
-	LotSize                          decimal.Decimal    `json:"lotSz"`
-	MinSize                          decimal.Decimal    `json:"minSz"`
-	ContractType                     CtType             `json:"ctType"`
-	Alias                            string             `json:"alias"`
-	State                            InstState          `json:"state"`
+	InstrumentType            InstType        `json:"instType"`
+	InstrumentID              string          `json:"instId"`
+	InstrumentIDCode          int64           `json:"instIdCode"`
+	Underlying                string          `json:"uly"`
+	InstrumentFamily          string          `json:"instFamily"`
+	Category                  string          `json:"category"`
+	InstrumentCategory        string          `json:"instCategory"`
+	BaseCurrency              string          `json:"baseCcy"`
+	QuoteCurrency             string          `json:"quoteCcy"`
+	SettleCurrency            string          `json:"settleCcy"`
+	ContractValue             decimal.Decimal `json:"ctVal"`
+	ContractMultiplier        decimal.Decimal `json:"ctMult"`
+	ContractValueCurrency     string          `json:"ctValCcy"`
+	OptionType                OptType         `json:"optType"`
+	Strike                    decimal.Decimal `json:"stk"`
+	ListTime                  time.Time       `json:"listTime"`
+	AuctionEndTime            time.Time       `json:"auctionEndTime"`
+	ContinuousTradeSwitchTime time.Time       `json:"contTdSwTime"`
+	OpenType                  publicOpenType  `json:"openType"`
+	ExpiryTime                time.Time       `json:"expTime"`
+	Leverage                  decimal.Decimal `json:"lever"`
+	TickSize                  decimal.Decimal `json:"tickSz"`
+	LotSize                   decimal.Decimal `json:"lotSz"`
+	MinSize                   decimal.Decimal `json:"minSz"`
+	ContractType              CtType          `json:"ctType"`
+	Alias                     string          `json:"alias"`
+	State                     InstState       `json:"state"`
+	// RuleType is the trading rule type: "normal" (normal trading),
+	// "pre_market" (pre-market trading, including pre-market X-Perp FUTURES),
+	// "rebase_contract" (pre-market rebase contract) and "xperp"
+	// (perpetual-style FUTURES; a pre-market X-Perp changes from "pre_market"
+	// to "xperp" once it converts to a normal X-Perp).
 	RuleType                         string             `json:"ruleType"`
 	MaxLimitSize                     decimal.Decimal    `json:"maxLmtSz"`
 	MaxMarketSize                    decimal.Decimal    `json:"maxMktSz"`
@@ -125,7 +130,10 @@ type Instrument struct {
 	ShortPositionRemainingQuota decimal.Decimal `json:"shortPosRemainingQuota"`
 	PositionLimitAmount         decimal.Decimal `json:"posLmtAmt"`
 	PositionLimitPercent        decimal.Decimal `json:"posLmtPct"`
-	PreMarketSwitchTime         time.Time       `json:"preMktSwTime"`
+	// PreMarketSwitchTime is the time a pre-market instrument switched to normal
+	// trading. Only applicable to pre-market SWAP and pre-market X-Perp FUTURES;
+	// populated when a pre-market X-Perp converts to a normal X-Perp.
+	PreMarketSwitchTime time.Time `json:"preMktSwTime"`
 	// InitialPriceLimitPercent is the initial price-limit band applied during the
 	// first 10 minutes after contract listing. Empty for OPTION and EVENTS.
 	InitialPriceLimitPercent decimal.Decimal `json:"initPxLmtPct"`

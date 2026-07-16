@@ -15,7 +15,7 @@ WebSocket streams.
 
 | API                                                         | Aligned to                                        |
 | ----------------------------------------------------------- | ------------------------------------------------- |
-| `/api/v5` REST + v5 WebSocket (public / private / business) | [2026-07-14](https://www.okx.com/docs-v5/log_en/#upcoming-changes) |
+| `/api/v5` REST + v5 WebSocket (public / private / business) | [2026-07-16](https://www.okx.com/docs-v5/log_en/#upcoming-changes) |
 
 
 Response structs are reconciled against the **live API** (not just the docs), so
