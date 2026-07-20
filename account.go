@@ -637,9 +637,13 @@ type TradeFee struct {
 
 // TradeFeeGroup is one fee group's maker/taker rates.
 type TradeFeeGroup struct {
-	GroupID  string          `json:"groupId"`
-	Maker    decimal.Decimal `json:"maker"`
-	Taker    decimal.Decimal `json:"taker"`
+	GroupID string          `json:"groupId"`
+	Maker   decimal.Decimal `json:"maker"`
+	Taker   decimal.Decimal `json:"taker"`
+	// ElpMaker is the ELP (Enhanced Liquidity Program) maker fee rate. OKX is
+	// rebranding ELP to RPI (Retail Price Improvement); the json key stays
+	// "elpMaker" until the old names retire on 2026-10-31, when it becomes
+	// "rpiMaker".
 	ElpMaker decimal.Decimal `json:"elpMaker"`
 }
 

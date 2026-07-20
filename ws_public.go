@@ -231,7 +231,11 @@ type WsInstrument struct {
 	// PreMarketSwitchTime is the time a pre-market instrument switched to normal
 	// trading. Applicable to pre-market SWAP and pre-market X-Perp FUTURES.
 	PreMarketSwitchTime time.Time `json:"preMktSwTime"`
-	Elp                 string    `json:"elp"`
+	// Elp is the ELP (Enhanced Liquidity Program) maker permission (values
+	// "0"/"1"/"2"; see Instrument.Elp). OKX is rebranding ELP to RPI (Retail
+	// Price Improvement); the json key stays "elp" until the old names retire on
+	// 2026-10-31, after which it becomes "rpi".
+	Elp string `json:"elp"`
 }
 
 // SubscribeInstrumentsService -- "instruments" channel (public; no login).

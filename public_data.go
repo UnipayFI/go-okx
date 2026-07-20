@@ -151,8 +151,12 @@ type Instrument struct {
 	// method is "hit" (EVENTS only). "up": price hit from below; "dn": price hit
 	// from above; empty for non-"hit" methods.
 	HitDirection string `json:"hitDir"`
-	// Elp (effective leverage profile) is returned only by the private
-	// GET /api/v5/account/instruments variant; it is empty on the public endpoint.
+	// Elp is the ELP (Enhanced Liquidity Program) maker permission, returned only
+	// by the private GET /api/v5/account/instruments variant (empty on the public
+	// endpoint): "0" ELP not enabled for this symbol; "1" enabled but the current
+	// user lacks permission to place ELP orders; "2" enabled and permitted. OKX is
+	// rebranding ELP to RPI (Retail Price Improvement); the json key stays "elp"
+	// until the old names retire on 2026-10-31, after which it becomes "rpi".
 	Elp string `json:"elp"`
 }
 
