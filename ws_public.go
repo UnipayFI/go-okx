@@ -61,9 +61,11 @@ type WsTrade struct {
 	Size         decimal.Decimal `json:"sz"`
 	Side         Side            `json:"side"`
 	Count        string          `json:"count"`
-	Source       string          `json:"source"`
-	SequenceID   int64           `json:"seqId"`
-	Timestamp    time.Time       `json:"ts"`
+	// Source is the trade source ("1": RPI order, previously ELP order; see
+	// Trade.Source).
+	Source     string    `json:"source"`
+	SequenceID int64     `json:"seqId"`
+	Timestamp  time.Time `json:"ts"`
 }
 
 // SubscribeTradesService -- "trades" channel (public; no login).

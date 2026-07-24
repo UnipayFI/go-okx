@@ -341,8 +341,11 @@ type Trade struct {
 	Price        decimal.Decimal `json:"px"`
 	Size         decimal.Decimal `json:"sz"`
 	Side         Side            `json:"side"`
-	Source       string          `json:"source"`
-	Timestamp    time.Time       `json:"ts"`
+	// Source is the trade source. "1": RPI (Retail Price Improvement) order —
+	// previously documented as ELP order; the returned value itself is
+	// unchanged by the ELP->RPI rebranding.
+	Source    string    `json:"source"`
+	Timestamp time.Time `json:"ts"`
 }
 
 // MarketHistoryTradeType selects the paging field for history-trades:

@@ -373,10 +373,13 @@ type WsOrder struct {
 	CreationTime               time.Time       `json:"cTime"`
 	RequestID                  string          `json:"reqId"`
 	AmendResult                string          `json:"amendResult"`
-	AmendSource                string          `json:"amendSource"`
-	Code                       string          `json:"code"`
-	Message                    string          `json:"msg"`
-	TradeQuoteCurrency         string          `json:"tradeQuoteCcy"`
+	// AmendSource gains value "6" with the ELP->RPI rebranding rollout: order
+	// price adjusted (rounded) by the system to satisfy the RPI maker spacing
+	// rule.
+	AmendSource        string `json:"amendSource"`
+	Code               string `json:"code"`
+	Message            string `json:"msg"`
+	TradeQuoteCurrency string `json:"tradeQuoteCcy"`
 }
 
 // SubscribeLiquidationWarningService -- "liquidation-warning" channel (private; login).
