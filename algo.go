@@ -258,6 +258,23 @@ func (s *PlaceAlgoOrderService) SetMaxChaseVal(val decimal.Decimal) *PlaceAlgoOr
 	return s
 }
 
+// --- advance order type (chase trigger) fields ---
+
+// SetAdvanceOrdType sets the order type spawned when a FUTURES/SWAP trigger order
+// fires. Value "chase" makes the triggered order a chase limit order; ordPx is
+// then not required and the chase parameters come from SetAdvChaseParams.
+func (s *PlaceAlgoOrderService) SetAdvanceOrdType(advanceOrdType string) *PlaceAlgoOrderService {
+	s.body["advanceOrdType"] = advanceOrdType
+	return s
+}
+
+// SetAdvChaseParams sets the chase parameters carried by a trigger order whose
+// advanceOrdType is "chase" (FUTURES/SWAP).
+func (s *PlaceAlgoOrderService) SetAdvChaseParams(params []AdvChaseParam) *PlaceAlgoOrderService {
+	s.body["advChaseParams"] = params
+	return s
+}
+
 // SetQuickMgnType sets the quick-margin borrow type (manual/auto_borrow/auto_borrow_repay).
 func (s *PlaceAlgoOrderService) SetQuickMgnType(quickMgnType string) *PlaceAlgoOrderService {
 	s.body["quickMgnType"] = quickMgnType
@@ -287,6 +304,16 @@ type AlgoAttachOrd struct {
 	StopLossOrderPrice         decimal.Decimal `json:"slOrdPx,omitzero"`
 	Size                       decimal.Decimal `json:"sz,omitzero"`
 	AmendPriceOnTriggerType    string          `json:"amendPxOnTriggerType,omitempty"`
+}
+
+// AdvChaseParam carries the chase execution parameters of a FUTURES/SWAP trigger
+// order whose advanceOrdType is "chase": when the trigger fires the spawned order
+// chases the order book. Mirrors the standalone chase order fields.
+type AdvChaseParam struct {
+	ChaseType     string          `json:"chaseType,omitempty"`
+	ChaseValue    decimal.Decimal `json:"chaseVal,omitzero"`
+	MaxChaseType  string          `json:"maxChaseType,omitempty"`
+	MaxChaseValue decimal.Decimal `json:"maxChaseVal,omitzero"`
 }
 
 // AlgoResult is the per-item ack returned by the algo place / amend / cancel
@@ -620,63 +647,66 @@ func (s *GetAlgoOrdersHistoryService) Do(ctx context.Context) ([]AlgoOrder, erro
 // for order-algo / orders-algo-pending / orders-algo-history (a union covering all
 // algo order types).
 type AlgoOrder struct {
-	InstrumentType             InstType            `json:"instType"`
-	InstrumentID               string              `json:"instId"`
-	Currency                   string              `json:"ccy"`
-	OrderID                    string              `json:"ordId"`
-	OrderIDList                []string            `json:"ordIdList"`
-	AlgoID                     string              `json:"algoId"`
-	AlgoClientOrderID          string              `json:"algoClOrdId"`
-	ClientOrderID              string              `json:"clOrdId"`
-	Size                       decimal.Decimal     `json:"sz"`
-	CloseFraction              decimal.Decimal     `json:"closeFraction"`
-	OrderType                  AlgoOrdType         `json:"ordType"`
-	Side                       Side                `json:"side"`
-	PositionSide               PosSide             `json:"posSide"`
-	TradeMode                  TdMode              `json:"tdMode"`
-	TargetCurrency             TgtCcy              `json:"tgtCcy"`
-	State                      AlgoState           `json:"state"`
-	Leverage                   decimal.Decimal     `json:"lever"`
-	TakeProfitTriggerPrice     decimal.Decimal     `json:"tpTriggerPx"`
-	TakeProfitTriggerPriceType string              `json:"tpTriggerPxType"`
-	TakeProfitOrderPrice       decimal.Decimal     `json:"tpOrdPx"`
-	TakeProfitOrderKind        string              `json:"tpOrdKind"`
-	StopLossTriggerPrice       decimal.Decimal     `json:"slTriggerPx"`
-	StopLossTriggerPriceType   string              `json:"slTriggerPxType"`
-	StopLossOrderPrice         decimal.Decimal     `json:"slOrdPx"`
-	TriggerPrice               decimal.Decimal     `json:"triggerPx"`
-	TriggerPriceType           string              `json:"triggerPxType"`
-	OrderPrice                 decimal.Decimal     `json:"ordPx"`
-	ActualSize                 decimal.Decimal     `json:"actualSz"`
-	ActualPrice                decimal.Decimal     `json:"actualPx"`
-	ActualSide                 string              `json:"actualSide"`
-	TriggerTime                time.Time           `json:"triggerTime"`
-	PriceVariation             decimal.Decimal     `json:"pxVar"`
-	PriceSpread                decimal.Decimal     `json:"pxSpread"`
-	SizeLimit                  decimal.Decimal     `json:"szLimit"`
-	PriceLimit                 decimal.Decimal     `json:"pxLimit"`
-	TimeInterval               string              `json:"timeInterval"`
-	CallbackRatio              decimal.Decimal     `json:"callbackRatio"`
-	CallbackSpread             decimal.Decimal     `json:"callbackSpread"`
-	ActivePrice                decimal.Decimal     `json:"activePx"`
-	MoveTriggerPrice           decimal.Decimal     `json:"moveTriggerPx"`
-	ChaseType                  string              `json:"chaseType"`
-	ChaseValue                 decimal.Decimal     `json:"chaseVal"`
-	MaxChaseType               string              `json:"maxChaseType"`
-	MaxChaseValue              decimal.Decimal     `json:"maxChaseVal"`
-	ReduceOnly                 string              `json:"reduceOnly"`
-	QuickMarginType            string              `json:"quickMgnType"`
-	Last                       decimal.Decimal     `json:"last"`
-	FailCode                   string              `json:"failCode"`
-	AlgoClientOrderIDParent    string              `json:"algoClOrdIdParent"`
-	AmendPriceOnTriggerType    string              `json:"amendPxOnTriggerType"`
-	LinkedOrder                *AlgoLinkedOrd      `json:"linkedOrd"`
-	AttachAlgoOrders           []AlgoAttachOrdInfo `json:"attachAlgoOrds"`
-	Tag                        string              `json:"tag"`
-	CancelOnClosePosition      string              `json:"cxlOnClosePos"`
-	IsTradeBorrowMode          string              `json:"isTradeBorrowMode"`
-	CreationTime               time.Time           `json:"cTime"`
-	UpdateTime                 time.Time           `json:"uTime"`
+	InstrumentType             InstType        `json:"instType"`
+	InstrumentID               string          `json:"instId"`
+	Currency                   string          `json:"ccy"`
+	OrderID                    string          `json:"ordId"`
+	OrderIDList                []string        `json:"ordIdList"`
+	AlgoID                     string          `json:"algoId"`
+	AlgoClientOrderID          string          `json:"algoClOrdId"`
+	ClientOrderID              string          `json:"clOrdId"`
+	Size                       decimal.Decimal `json:"sz"`
+	CloseFraction              decimal.Decimal `json:"closeFraction"`
+	OrderType                  AlgoOrdType     `json:"ordType"`
+	Side                       Side            `json:"side"`
+	PositionSide               PosSide         `json:"posSide"`
+	TradeMode                  TdMode          `json:"tdMode"`
+	TargetCurrency             TgtCcy          `json:"tgtCcy"`
+	State                      AlgoState       `json:"state"`
+	Leverage                   decimal.Decimal `json:"lever"`
+	TakeProfitTriggerPrice     decimal.Decimal `json:"tpTriggerPx"`
+	TakeProfitTriggerPriceType string          `json:"tpTriggerPxType"`
+	TakeProfitOrderPrice       decimal.Decimal `json:"tpOrdPx"`
+	TakeProfitOrderKind        string          `json:"tpOrdKind"`
+	StopLossTriggerPrice       decimal.Decimal `json:"slTriggerPx"`
+	StopLossTriggerPriceType   string          `json:"slTriggerPxType"`
+	StopLossOrderPrice         decimal.Decimal `json:"slOrdPx"`
+	TriggerPrice               decimal.Decimal `json:"triggerPx"`
+	TriggerPriceType           string          `json:"triggerPxType"`
+	OrderPrice                 decimal.Decimal `json:"ordPx"`
+	ActualSize                 decimal.Decimal `json:"actualSz"`
+	ActualPrice                decimal.Decimal `json:"actualPx"`
+	ActualSide                 string          `json:"actualSide"`
+	TriggerTime                time.Time       `json:"triggerTime"`
+	PriceVariation             decimal.Decimal `json:"pxVar"`
+	PriceSpread                decimal.Decimal `json:"pxSpread"`
+	SizeLimit                  decimal.Decimal `json:"szLimit"`
+	PriceLimit                 decimal.Decimal `json:"pxLimit"`
+	TimeInterval               string          `json:"timeInterval"`
+	CallbackRatio              decimal.Decimal `json:"callbackRatio"`
+	CallbackSpread             decimal.Decimal `json:"callbackSpread"`
+	ActivePrice                decimal.Decimal `json:"activePx"`
+	MoveTriggerPrice           decimal.Decimal `json:"moveTriggerPx"`
+	ChaseType                  string          `json:"chaseType"`
+	ChaseValue                 decimal.Decimal `json:"chaseVal"`
+	MaxChaseType               string          `json:"maxChaseType"`
+	MaxChaseValue              decimal.Decimal `json:"maxChaseVal"`
+	// SubAlgoIDList holds the algoId(s) of the chase order(s) spawned when a
+	// trigger order with advanceOrdType "chase" fires (FUTURES/SWAP).
+	SubAlgoIDList           []string            `json:"subAlgoIdList"`
+	ReduceOnly              string              `json:"reduceOnly"`
+	QuickMarginType         string              `json:"quickMgnType"`
+	Last                    decimal.Decimal     `json:"last"`
+	FailCode                string              `json:"failCode"`
+	AlgoClientOrderIDParent string              `json:"algoClOrdIdParent"`
+	AmendPriceOnTriggerType string              `json:"amendPxOnTriggerType"`
+	LinkedOrder             *AlgoLinkedOrd      `json:"linkedOrd"`
+	AttachAlgoOrders        []AlgoAttachOrdInfo `json:"attachAlgoOrds"`
+	Tag                     string              `json:"tag"`
+	CancelOnClosePosition   string              `json:"cxlOnClosePos"`
+	IsTradeBorrowMode       string              `json:"isTradeBorrowMode"`
+	CreationTime            time.Time           `json:"cTime"`
+	UpdateTime              time.Time           `json:"uTime"`
 }
 
 // AlgoLinkedOrd is the order linked to an algo order (OCO/conditional).
