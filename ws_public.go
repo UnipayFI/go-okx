@@ -181,6 +181,26 @@ func (s *SubscribeBooksL2TbtService) Do(ctx context.Context, cb WsHandler[WsOrde
 		request.WsArg{Channel: "books-l2-tbt", InstrumentID: s.instId}, cb)
 }
 
+// SubscribeBooksRpiService -- "books-rpi" channel (public; no login). Part of
+// the ELP->RPI rebranding (replaces the former "books-elp"). Consolidated
+// 400-level RPI order book: the first push is a "snapshot" (push.Action),
+// subsequent pushes are "update" at ~100ms. There is no checksum; sequencing is
+// via seqId/prevSeqId only. Each level is [price, totalQty, nonRpiQty, count]
+// (see RpiOrderBook), where nonRpiQty is the non-RPI portion of the size.
+type SubscribeBooksRpiService struct {
+	c      *WebSocketClient
+	instId string
+}
+
+func (c *WebSocketClient) NewSubscribeBooksRpiService(instId string) *SubscribeBooksRpiService {
+	return &SubscribeBooksRpiService{c: c, instId: instId}
+}
+
+func (s *SubscribeBooksRpiService) Do(ctx context.Context, cb WsHandler[WsOrderBook]) (chan<- struct{}, <-chan struct{}, error) {
+	return request.Subscribe[[]WsOrderBook](ctx, s.c, request.GatewayPublic, false,
+		request.WsArg{Channel: "books-rpi", InstrumentID: s.instId}, cb)
+}
+
 // WsInstrument is an instrument definition pushed on the "instruments" channel
 // (on a listing/rule change). It mirrors the REST Instrument's pushed subset.
 type WsInstrument struct {

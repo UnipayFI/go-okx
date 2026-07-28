@@ -29,6 +29,7 @@ func TestWsPublic(t *testing.T) {
 	_ = c.NewSubscribeBboTbtService("BTC-USDT")
 	_ = c.NewSubscribeBooks50L2TbtService("BTC-USDT")
 	_ = c.NewSubscribeBooksL2TbtService("BTC-USDT")
+	_ = c.NewSubscribeBooksRpiService("BTC-USDT")
 	_ = c.NewSubscribeInstrumentsService(InstTypeSpot)
 	_ = c.NewSubscribeOpenInterestService("BTC-USDT-SWAP")
 	_ = c.NewSubscribeFundingRateService("BTC-USDT-SWAP")
@@ -101,6 +102,19 @@ func TestWsPublic(t *testing.T) {
 			t.Fatalf("decode: %v", err)
 		}
 		assertCovers(t, "ws/bbo-tbt", raw, data)
+	})
+
+	t.Run("books-rpi", func(t *testing.T) {
+		arg := request.WsArg{Channel: "books-rpi", InstrumentID: "BTC-USDT"}
+		raw := wsFirstDataArray(t, c, request.GatewayPublic, false, arg, timeout)
+		if raw == nil {
+			return
+		}
+		var data []WsOrderBook
+		if err := common.JSONUnmarshal(raw, &data); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		assertCovers(t, "ws/books-rpi", raw, data)
 	})
 
 	// VIP-gated depth channels: log in (private=true) then expect code 64003
