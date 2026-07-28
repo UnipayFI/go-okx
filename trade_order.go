@@ -87,6 +87,14 @@ type OrderArg struct {
 	STPID                      string          `json:"stpId,omitempty"`
 	STPMode                    string          `json:"stpMode,omitempty"`
 	AttachAlgoOrders           []AttachAlgoOrd `json:"attachAlgoOrds,omitempty"`
+	// RpiTakerAccess, when true, lets the order access RPI (Retail Price
+	// Improvement) liquidity for all standard order types (limit/market/fok/ioc).
+	// Replaces the former isElpTakerAccess flag under the ELP->RPI rebranding.
+	RpiTakerAccess bool `json:"rpiTakerAccess,omitempty"`
+	// RpiPxRound, when true, auto-rounds a price that violates the RPI spacing
+	// rule outward to the nearest placeable, non-crossing level. Effective only on
+	// RPI maker orders. Default false.
+	RpiPxRound bool `json:"rpiPxRound,omitempty"`
 }
 
 // OrderResult is the ack returned by the place / batch-place / cancel /
@@ -243,6 +251,22 @@ func (s *PlaceOrderService) SetStpMode(stpMode string) *PlaceOrderService {
 // SetAttachAlgoOrds attaches take-profit / stop-loss algo orders.
 func (s *PlaceOrderService) SetAttachAlgoOrds(orders []AttachAlgoOrd) *PlaceOrderService {
 	s.body["attachAlgoOrds"] = orders
+	return s
+}
+
+// SetRpiTakerAccess toggles access to RPI (Retail Price Improvement) liquidity;
+// when true it applies to all standard order types (limit/market/fok/ioc).
+// Replaces the former isElpTakerAccess flag under the ELP->RPI rebranding.
+func (s *PlaceOrderService) SetRpiTakerAccess(rpiTakerAccess bool) *PlaceOrderService {
+	s.body["rpiTakerAccess"] = rpiTakerAccess
+	return s
+}
+
+// SetRpiPxRound toggles auto-rounding of a price that violates the RPI spacing
+// rule outward to the nearest placeable, non-crossing level. Effective only on
+// RPI maker orders.
+func (s *PlaceOrderService) SetRpiPxRound(rpiPxRound bool) *PlaceOrderService {
+	s.body["rpiPxRound"] = rpiPxRound
 	return s
 }
 
@@ -438,6 +462,22 @@ func (s *AmendOrderService) SetAttachAlgoOrds(orders []AttachAlgoOrd) *AmendOrde
 	return s
 }
 
+// SetRpiTakerAccess toggles access to RPI (Retail Price Improvement) liquidity
+// for all standard order types. Settable on amend under the ELP->RPI rebranding
+// (replaces the former isElpTakerAccess flag).
+func (s *AmendOrderService) SetRpiTakerAccess(rpiTakerAccess bool) *AmendOrderService {
+	s.body["rpiTakerAccess"] = rpiTakerAccess
+	return s
+}
+
+// SetRpiPxRound toggles auto-rounding of a price that violates the RPI spacing
+// rule outward to the nearest placeable, non-crossing level. RPI maker orders
+// only.
+func (s *AmendOrderService) SetRpiPxRound(rpiPxRound bool) *AmendOrderService {
+	s.body["rpiPxRound"] = rpiPxRound
+	return s
+}
+
 func (s *AmendOrderService) Do(ctx context.Context) (*AmendResult, error) {
 	req := request.Post(ctx, s.c, "/api/v5/trade/amend-order", s.body).WithSign()
 	list, err := request.DoListPartial[AmendResult](req)
@@ -468,6 +508,14 @@ type AmendOrderArg struct {
 	NewTakeProfitTriggerPriceType string          `json:"newTpTriggerPxType,omitempty"`
 	NewStopLossTriggerPriceType   string          `json:"newSlTriggerPxType,omitempty"`
 	AttachAlgoOrders              []AttachAlgoOrd `json:"attachAlgoOrds,omitempty"`
+	// RpiTakerAccess, when true, lets the order access RPI (Retail Price
+	// Improvement) liquidity for all standard order types. Settable on amend under
+	// the ELP->RPI rebranding (replaces the former isElpTakerAccess flag).
+	RpiTakerAccess bool `json:"rpiTakerAccess,omitempty"`
+	// RpiPxRound, when true, auto-rounds a price that violates the RPI spacing
+	// rule outward to the nearest placeable, non-crossing level. RPI maker orders
+	// only. Default false.
+	RpiPxRound bool `json:"rpiPxRound,omitempty"`
 }
 
 // AmendBatchOrdersService -- POST /api/v5/trade/amend-batch-orders (Trade)
