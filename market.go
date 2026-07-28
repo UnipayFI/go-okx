@@ -131,6 +131,43 @@ func (s *GetBooksFullService) Do(ctx context.Context) (*OrderBook, error) {
 	return request.DoOne[OrderBook](req)
 }
 
+// RpiOrderBook is a consolidated RPI (Retail Price Improvement) order book
+// snapshot from /market/books-rpi. It merges organic and RPI liquidity into a
+// single depth stream; each ask/bid level is [price, totalQty, nonRpiQty,
+// count], where totalQty is the aggregated size, nonRpiQty is the portion that
+// is not RPI liquidity, and count is the number of orders at that price.
+type RpiOrderBook struct {
+	Asks       [][]string `json:"asks"`
+	Bids       [][]string `json:"bids"`
+	Timestamp  time.Time  `json:"ts"`
+	SequenceID int64      `json:"seqId"`
+}
+
+// GetBooksRpiService -- GET /api/v5/market/books-rpi (public)
+//
+// Returns the consolidated RPI order book (up to 400 levels) for an instrument,
+// refreshed every 200 ms server-side. Part of the ELP->RPI rebranding (replaces
+// the former /market/books-elp).
+type GetBooksRpiService struct {
+	c      *Client
+	params map[string]string
+}
+
+func (c *Client) NewGetBooksRpiService(instId string) *GetBooksRpiService {
+	return &GetBooksRpiService{c: c, params: map[string]string{"instId": instId}}
+}
+
+// SetSz sets the order book depth (number of price levels).
+func (s *GetBooksRpiService) SetSz(sz int) *GetBooksRpiService {
+	s.params["sz"] = strconv.Itoa(sz)
+	return s
+}
+
+func (s *GetBooksRpiService) Do(ctx context.Context) (*RpiOrderBook, error) {
+	req := request.Get(ctx, s.c, "/api/v5/market/books-rpi", s.params)
+	return request.DoOne[RpiOrderBook](req)
+}
+
 // MarketBar is a candlestick time granularity (e.g. "1m", "1H", "1D").
 type MarketBar string
 

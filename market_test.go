@@ -54,6 +54,17 @@ func TestMarket(t *testing.T) {
 		assertCovers(t, "books-full", raw, resp)
 	}
 
+	// GET /api/v5/market/books-rpi
+	{
+		params := map[string]string{"instId": "BTC-USDT", "sz": "5"}
+		resp, err := c.NewGetBooksRpiService("BTC-USDT").SetSz(5).Do(cx)
+		if err != nil {
+			t.Fatalf("books-rpi: %v", err)
+		}
+		raw := fetchRawGet(t, c, cx, "/api/v5/market/books-rpi", params, false)
+		assertCovers(t, "books-rpi", raw, resp)
+	}
+
 	// GET /api/v5/market/candles (array-of-arrays)
 	{
 		candles, err := c.NewGetCandlesService("BTC-USDT").SetLimit(5).Do(cx)
