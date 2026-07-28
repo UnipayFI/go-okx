@@ -158,6 +158,13 @@ type Instrument struct {
 	// rebranding ELP to RPI (Retail Price Improvement); the json key stays "elp"
 	// until the old names retire on 2026-10-31, after which it becomes "rpi".
 	Elp string `json:"elp"`
+	// RpiMinLevel is the minimum spacing between the RPI bid and RPI ask, in
+	// organic price levels. Default "4"; "0" for Event Contracts. Part of the
+	// ELP->RPI rebranding.
+	RpiMinLevel string `json:"rpiMinLevel"`
+	// RpiMinPxBand is the minimum distance from the opposite-side organic best
+	// price required to satisfy the RPI spacing rule, in basis points.
+	RpiMinPxBand string `json:"rpiMinPxBand"`
 }
 
 // InstrumentUpcChg is a scheduled upcoming change to one of an instrument's

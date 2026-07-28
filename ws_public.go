@@ -258,6 +258,12 @@ type WsInstrument struct {
 	// Price Improvement); the json key stays "elp" until the old names retire on
 	// 2026-10-31, after which it becomes "rpi".
 	Elp string `json:"elp"`
+	// RpiMinLevel is the minimum spacing between the RPI bid and RPI ask, in
+	// organic price levels (default "4"; "0" for Event Contracts). RpiMinPxBand is
+	// the minimum distance from the opposite-side organic best price, in basis
+	// points. Both are part of the ELP->RPI rebranding; see Instrument.
+	RpiMinLevel  string `json:"rpiMinLevel"`
+	RpiMinPxBand string `json:"rpiMinPxBand"`
 }
 
 // SubscribeInstrumentsService -- "instruments" channel (public; no login).
