@@ -20,8 +20,10 @@ func TestAffiliate(t *testing.T) {
 	// --- GET /api/v5/affiliate/invitee/detail (Read) ---
 	{
 		const label = "affiliate/invitee/detail"
-		params := map[string]string{"uid": "123456"}
-		resp, err := c.NewGetAffiliateInviteeDetailService("123456").Do(cx)
+		params := map[string]string{"uid": "123456", "periodType": "last_30d"}
+		resp, err := c.NewGetAffiliateInviteeDetailService("123456").
+			SetPeriodType(AffiliatePeriodLast30D).
+			Do(cx)
 		if err != nil {
 			// 51620: not an affiliate; 59509/18004: affiliate role/permission gating;
 			// 50014: param probe (placeholder uid not a real invitee).

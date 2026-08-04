@@ -8,6 +8,23 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// AffiliatePeriodType selects the stats window for an affiliate endpoint's
+// period-scoped fields (volPeriod).
+type AffiliatePeriodType string
+
+const (
+	AffiliatePeriodLast7D    AffiliatePeriodType = "last_7d"
+	AffiliatePeriodLast30D   AffiliatePeriodType = "last_30d"
+	AffiliatePeriodThisMonth AffiliatePeriodType = "this_month"
+	AffiliatePeriodLastMonth AffiliatePeriodType = "last_month"
+	AffiliatePeriodTotal     AffiliatePeriodType = "total"
+	AffiliatePeriodToday     AffiliatePeriodType = "today"
+	AffiliatePeriodThisWeek  AffiliatePeriodType = "this_week"
+	// AffiliatePeriodCustom pairs with begin/end and is accepted by the invitee
+	// list only; the invitee detail rejects it with code 51000.
+	AffiliatePeriodCustom AffiliatePeriodType = "custom"
+)
+
 // GetAffiliateInviteeDetailService -- GET /api/v5/affiliate/invitee/detail (Read)
 //
 // Returns the affiliate-relationship detail for one of the calling affiliate's
@@ -27,6 +44,14 @@ type GetAffiliateInviteeDetailService struct {
 
 func (c *Client) NewGetAffiliateInviteeDetailService(uid string) *GetAffiliateInviteeDetailService {
 	return &GetAffiliateInviteeDetailService{c: c, params: map[string]string{"uid": uid}}
+}
+
+// SetPeriodType selects the stats window for the VolumePeriod response field.
+// When unset, VolumePeriod is not returned. AffiliatePeriodCustom is not
+// supported here — it (or any unknown value) returns code 51000.
+func (s *GetAffiliateInviteeDetailService) SetPeriodType(periodType AffiliatePeriodType) *GetAffiliateInviteeDetailService {
+	s.params["periodType"] = string(periodType)
+	return s
 }
 
 func (s *GetAffiliateInviteeDetailService) Do(ctx context.Context) (*AffiliateInviteeDetail, error) {
@@ -50,4 +75,8 @@ type AffiliateInviteeDetail struct {
 	Region                      string          `json:"region"`
 	AffiliateCode               string          `json:"affiliateCode"`
 	InvitedTradeVolumeThirtyDay decimal.Decimal `json:"invitedTradeVolThirtyD"`
+	// VolumePeriod is the trading volume inside the SetPeriodType window, in
+	// USDT. Only returned when periodType is supplied; 0 when the invitee did
+	// not trade in the window.
+	VolumePeriod decimal.Decimal `json:"volPeriod"`
 }
