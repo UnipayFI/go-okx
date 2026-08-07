@@ -3,6 +3,7 @@ package okx
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/UnipayFI/go-okx/request"
@@ -1020,4 +1021,109 @@ type MMInstrumentType struct {
 	InstrumentType InstType `json:"instType"`
 	InstrumentID   string   `json:"instId"`
 	PairType       string   `json:"pairType"`
+}
+
+// MarketDataModule selects which historical dataset the market-data-history
+// endpoint lists download links for.
+type MarketDataModule string
+
+const (
+	MarketDataModuleTrades      MarketDataModule = "1"  // tick-by-tick trade history
+	MarketDataModuleCandles1m   MarketDataModule = "2"  // 1-minute candlesticks
+	MarketDataModuleFundingRate MarketDataModule = "3"  // funding rate
+	MarketDataModuleBooks400    MarketDataModule = "4"  // 400-level order book
+	MarketDataModuleBooks5000   MarketDataModule = "5"  // 5000-level order book (from 2025-11-01)
+	MarketDataModuleBooks50     MarketDataModule = "6"  // 50-level order book (being deprecated; use 4/5)
+	MarketDataModuleBorrowRate  MarketDataModule = "11" // borrowing rate
+)
+
+// MarketDataAggrType is the file granularity of a historical market-data query.
+type MarketDataAggrType string
+
+const (
+	MarketDataAggrDaily   MarketDataAggrType = "daily"
+	MarketDataAggrMonthly MarketDataAggrType = "monthly"
+)
+
+// GetMarketDataHistoryService -- GET /api/v5/public/market-data-history (public)
+//
+// Returns download links for OKX's historical market-data archives (trades,
+// 1m candles, funding rates, order books, borrowing rates) over a date range.
+//
+// Only the date part (yyyy-mm-dd) of begin/end is used and both ends are
+// inclusive; timestamps are interpreted in UTC+0 for the order-book modules
+// (4/5/6) and UTC+8 for all others. Since 2026-08-06 the maximum range is 10
+// days for daily and 10 months for monthly (previously 20 of each); when the
+// query exceeds the record limit the data closest to end is returned. Files are
+// listed newest first, and are typically published at T+2 (T+3 for order
+// books).
+type GetMarketDataHistoryService struct {
+	c      *Client
+	params map[string]string
+}
+
+// NewGetMarketDataHistoryService builds the query. module selects the dataset,
+// instType the instrument type, aggrType the daily/monthly file granularity,
+// and begin/end the (inclusive) date range. Pass the instruments via
+// SetInstIdList (SPOT) or SetInstFamilyList (non-SPOT).
+func (c *Client) NewGetMarketDataHistoryService(module MarketDataModule, instType InstType, aggrType MarketDataAggrType, begin, end time.Time) *GetMarketDataHistoryService {
+	return &GetMarketDataHistoryService{c: c, params: map[string]string{
+		"module":       string(module),
+		"instType":     string(instType),
+		"dateAggrType": string(aggrType),
+		"begin":        strconv.FormatInt(begin.UnixMilli(), 10),
+		"end":          strconv.FormatInt(end.UnixMilli(), 10),
+	}}
+}
+
+// SetInstIdList selects up to 10 instrument ids, or the single value "ANY" for
+// all of them. Only applicable when instType is SPOT; "ANY" is only supported
+// for modules 1/2/3/11 with daily aggregation.
+func (s *GetMarketDataHistoryService) SetInstIdList(instIds ...string) *GetMarketDataHistoryService {
+	s.params["instIdList"] = strings.Join(instIds, ",")
+	return s
+}
+
+// SetInstFamilyList selects up to 10 instrument families, or the single value
+// "ANY" for all of them. Only applicable when instType is not SPOT; at most one
+// family is allowed for module 6 with instType OPTION, and "ANY" is only
+// supported for modules 1/2/3/11 with daily aggregation.
+func (s *GetMarketDataHistoryService) SetInstFamilyList(instFamilies ...string) *GetMarketDataHistoryService {
+	s.params["instFamilyList"] = strings.Join(instFamilies, ",")
+	return s
+}
+
+func (s *GetMarketDataHistoryService) Do(ctx context.Context) (*MarketDataHistory, error) {
+	req := request.Get(ctx, s.c, "/api/v5/public/market-data-history", s.params)
+	return request.DoOne[MarketDataHistory](req)
+}
+
+// MarketDataHistory is one historical market-data query result: the matching
+// archive groups and their combined size.
+type MarketDataHistory struct {
+	DateAggrType MarketDataAggrType        `json:"dateAggrType"`
+	TotalSizeMB  decimal.Decimal           `json:"totalSizeMB"`
+	Details      []MarketDataHistoryDetail `json:"details"`
+	Timestamp    time.Time                 `json:"ts"`
+}
+
+// MarketDataHistoryDetail is one instrument's (or family's) archive group within
+// the queried range.
+type MarketDataHistoryDetail struct {
+	InstrumentType   InstType                `json:"instType"`
+	InstrumentID     string                  `json:"instId"`
+	InstrumentFamily string                  `json:"instFamily"`
+	Currency         string                  `json:"ccy"`
+	DateRangeStart   time.Time               `json:"dateRangeStart"`
+	DateRangeEnd     time.Time               `json:"dateRangeEnd"`
+	GroupSizeMB      decimal.Decimal         `json:"groupSizeMB"`
+	GroupDetails     []MarketDataHistoryFile `json:"groupDetails"`
+}
+
+// MarketDataHistoryFile is a single downloadable archive file.
+type MarketDataHistoryFile struct {
+	Filename      string          `json:"filename"`
+	DateTimestamp time.Time       `json:"dateTs"`
+	SizeMB        decimal.Decimal `json:"sizeMB"`
+	URL           string          `json:"url"`
 }

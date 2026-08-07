@@ -1,7 +1,9 @@
 package okx
 
 import (
+	"strconv"
 	"testing"
+	"time"
 )
 
 // TestPublicData exercises every /api/v5/public/* market-reference endpoint
@@ -246,5 +248,30 @@ func TestPublicData(t *testing.T) {
 		}
 		raw := fetchRawGet(t, c, cx, "/api/v5/public/mm-instrument-types", params, false)
 		assertCovers(t, "mm-instrument-types", raw, resp)
+	}
+
+	// market-data-history (trade archives for BTC-USDT-SWAP). Archives are
+	// published at T+2, so query a window that ends three days back.
+	{
+		end := time.Now().AddDate(0, 0, -3)
+		begin := end.AddDate(0, 0, -2)
+		params := map[string]string{
+			"module":         string(MarketDataModuleTrades),
+			"instType":       string(InstTypeSwap),
+			"dateAggrType":   string(MarketDataAggrDaily),
+			"begin":          strconv.FormatInt(begin.UnixMilli(), 10),
+			"end":            strconv.FormatInt(end.UnixMilli(), 10),
+			"instFamilyList": "BTC-USDT",
+		}
+		resp, err := c.NewGetMarketDataHistoryService(MarketDataModuleTrades, InstTypeSwap, MarketDataAggrDaily, begin, end).
+			SetInstFamilyList("BTC-USDT").Do(cx)
+		if err != nil {
+			t.Fatalf("market-data-history: %v", err)
+		}
+		if resp == nil || len(resp.Details) == 0 {
+			t.Fatal("market-data-history: no archive groups returned")
+		}
+		raw := fetchRawGet(t, c, cx, "/api/v5/public/market-data-history", params, false)
+		assertCovers(t, "market-data-history", raw, resp)
 	}
 }
