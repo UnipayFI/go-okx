@@ -571,6 +571,9 @@ type DiscountRateInterestFreeQuota struct {
 	CollateralRestrict bool               `json:"collateralRestrict"`
 	ColRes             string             `json:"colRes"`
 	Details            []DiscountRateTier `json:"details"`
+	// EffectiveTime is when an upcoming discount-rate schedule takes effect. The
+	// live API returns it empty (zero time) while no change is pending.
+	EffectiveTime time.Time `json:"effTime"`
 }
 
 // DiscountRateTier is one tier of a currency's discount-rate schedule.
