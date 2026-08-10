@@ -187,6 +187,10 @@ func (s *SubscribeBooksL2TbtService) Do(ctx context.Context, cb WsHandler[WsOrde
 // subsequent pushes are "update" at ~100ms. There is no checksum; sequencing is
 // via seqId/prevSeqId only. Each level is [price, totalQty, nonRpiQty, count]
 // (see RpiOrderBook), where nonRpiQty is the non-RPI portion of the size.
+//
+// The depth carries visible RPI liquidity only: an RPI order crossing the
+// opposite-side organic best bid/offer is hidden, as are a bid RPI and an ask
+// RPI that cross each other inside the organic spread. Since 2026-08-11.
 type SubscribeBooksRpiService struct {
 	c      *WebSocketClient
 	instId string

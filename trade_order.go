@@ -92,8 +92,9 @@ type OrderArg struct {
 	// Replaces the former isElpTakerAccess flag under the ELP->RPI rebranding.
 	RpiTakerAccess bool `json:"rpiTakerAccess,omitempty"`
 	// RpiPxRound, when true, auto-rounds a price that violates the RPI spacing
-	// rule outward to the nearest placeable, non-crossing level. Effective only on
-	// RPI maker orders. Default false.
+	// rule outward to the next level beyond the first *visible* opposite-side RPI
+	// (hidden RPI are excluded from the reference). Effective only on RPI maker
+	// orders. Default false. Since 2026-08-11.
 	RpiPxRound bool `json:"rpiPxRound,omitempty"`
 }
 
@@ -263,8 +264,15 @@ func (s *PlaceOrderService) SetRpiTakerAccess(rpiTakerAccess bool) *PlaceOrderSe
 }
 
 // SetRpiPxRound toggles auto-rounding of a price that violates the RPI spacing
-// rule outward to the nearest placeable, non-crossing level. Effective only on
-// RPI maker orders.
+// rule outward to the next level beyond the first visible opposite-side RPI;
+// hidden RPI are excluded. Effective only on RPI maker orders.
+//
+// The spacing rule itself references only the first visible opposite-side RPI:
+// when none exists the cross check falls back to the opposite-side organic best
+// bid/offer and the price-level check passes. The basis-points check always
+// references the organic best bid/offer, never RPI. An RPI order that crosses
+// the opposite-side organic best bid/offer is hidden, as are a bid RPI and an
+// ask RPI that cross each other inside the organic spread.
 func (s *PlaceOrderService) SetRpiPxRound(rpiPxRound bool) *PlaceOrderService {
 	s.body["rpiPxRound"] = rpiPxRound
 	return s
@@ -471,8 +479,12 @@ func (s *AmendOrderService) SetRpiTakerAccess(rpiTakerAccess bool) *AmendOrderSe
 }
 
 // SetRpiPxRound toggles auto-rounding of a price that violates the RPI spacing
-// rule outward to the nearest placeable, non-crossing level. RPI maker orders
-// only.
+// rule outward to the next level beyond the first visible opposite-side RPI;
+// hidden RPI are excluded. RPI maker orders only.
+//
+// An amend is validated against the order-book snapshot taken when the amend
+// command reaches the matching engine, with the order being amended treated as
+// still present in the book.
 func (s *AmendOrderService) SetRpiPxRound(rpiPxRound bool) *AmendOrderService {
 	s.body["rpiPxRound"] = rpiPxRound
 	return s

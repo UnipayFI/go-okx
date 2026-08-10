@@ -148,6 +148,11 @@ type RpiOrderBook struct {
 // Returns the consolidated RPI order book (up to 400 levels) for an instrument,
 // refreshed every 200 ms server-side. Part of the ELP->RPI rebranding (replaces
 // the former /market/books-elp).
+//
+// Only visible RPI liquidity is tradeable and counted in the depth: an RPI order
+// crossing the opposite-side organic best bid/offer is hidden, and a bid RPI and
+// an ask RPI that cross each other inside the organic spread are both hidden.
+// Since 2026-08-11.
 type GetBooksRpiService struct {
 	c      *Client
 	params map[string]string
