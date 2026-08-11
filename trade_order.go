@@ -525,8 +525,9 @@ type AmendOrderArg struct {
 	// the ELP->RPI rebranding (replaces the former isElpTakerAccess flag).
 	RpiTakerAccess bool `json:"rpiTakerAccess,omitempty"`
 	// RpiPxRound, when true, auto-rounds a price that violates the RPI spacing
-	// rule outward to the nearest placeable, non-crossing level. RPI maker orders
-	// only. Default false.
+	// rule outward to the next level beyond the first *visible* opposite-side RPI
+	// (hidden RPI are excluded from the reference). RPI maker orders only.
+	// Default false. Since 2026-08-11.
 	RpiPxRound bool `json:"rpiPxRound,omitempty"`
 }
 
