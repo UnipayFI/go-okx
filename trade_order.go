@@ -98,8 +98,11 @@ type OrderArg struct {
 	//
 	// An RPI maker order must also meet a minimum notional amount -- 10,000 USD
 	// for SWAP/FUTURES, 1,000 USD for SPOT, not applicable to EVENTS -- below
-	// which it is rejected with code 54051 (demo 2026-08-17, production
-	// 2026-08-19 phased / 2026-08-20 full).
+	// which it is rejected with code 54051 (production since 2026-08-18). The
+	// check is independent of the instrument's minSz; both must pass. Non-RPI
+	// orders, including takers that set rpiTakerAccess, are exempt, as are RPI
+	// orders already resting on the book when the rule went live. In a batch each
+	// sub-order is validated on its own and carries its own sCode.
 	RpiPxRound bool `json:"rpiPxRound,omitempty"`
 }
 
@@ -281,8 +284,9 @@ func (s *PlaceOrderService) SetRpiTakerAccess(rpiTakerAccess bool) *PlaceOrderSe
 //
 // An RPI maker order must also meet a minimum notional amount -- 10,000 USD for
 // SWAP/FUTURES, 1,000 USD for SPOT, not applicable to EVENTS -- below which it
-// is rejected with code 54051 (demo 2026-08-17, production 2026-08-19 phased /
-// 2026-08-20 full).
+// is rejected with code 54051 (production since 2026-08-18). The check is
+// independent of the instrument's minSz; both must pass. Non-RPI orders,
+// including takers that set rpiTakerAccess, are exempt.
 func (s *PlaceOrderService) SetRpiPxRound(rpiPxRound bool) *PlaceOrderService {
 	s.body["rpiPxRound"] = rpiPxRound
 	return s
@@ -497,9 +501,10 @@ func (s *AmendOrderService) SetRpiTakerAccess(rpiTakerAccess bool) *AmendOrderSe
 // still present in the book.
 //
 // An RPI maker order must also meet a minimum notional amount -- 10,000 USD for
-// SWAP/FUTURES, 1,000 USD for SPOT, not applicable to EVENTS -- below which the
-// amend is rejected with code 54051 (demo 2026-08-17, production 2026-08-19
-// phased / 2026-08-20 full).
+// SWAP/FUTURES, 1,000 USD for SPOT, not applicable to EVENTS. Only an amend that
+// carries newSz is re-validated, against the amended quantity; a newPx-only
+// amend is not. A failing amend is rejected with code 54051 and the original
+// order stays active. Production since 2026-08-18.
 func (s *AmendOrderService) SetRpiPxRound(rpiPxRound bool) *AmendOrderService {
 	s.body["rpiPxRound"] = rpiPxRound
 	return s
@@ -545,9 +550,11 @@ type AmendOrderArg struct {
 	// Default false. Since 2026-08-11.
 	//
 	// An RPI maker order must also meet a minimum notional amount -- 10,000 USD
-	// for SWAP/FUTURES, 1,000 USD for SPOT, not applicable to EVENTS -- below
-	// which the amend is rejected with code 54051 (demo 2026-08-17, production
-	// 2026-08-19 phased / 2026-08-20 full).
+	// for SWAP/FUTURES, 1,000 USD for SPOT, not applicable to EVENTS. Only an
+	// amend that carries newSz is re-validated, against the amended quantity; a
+	// newPx-only amend is not. A failing amend is rejected with code 54051 -- per
+	// sub-order in a batch -- and the original order stays active. Production
+	// since 2026-08-18.
 	RpiPxRound bool `json:"rpiPxRound,omitempty"`
 }
 
