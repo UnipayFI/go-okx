@@ -277,15 +277,18 @@ type WsBalPosTrade struct {
 //
 // Pushes on order create / amend / fill / cancel. Activity-driven (no snapshot).
 //
-// Push-behaviour adjustment for post-only and RPI orders: state "live" is
-// pushed only once the order has actually entered the book (~1 ms after entry)
-// instead of immediately on receipt, and a placement that fails outright never
-// reports "live" at all -- a post-only order rejected for crossing the best
-// bid/offer, or an RPI order rejected by the price spacing rule, pushes only
-// state "canceled". Do not treat a missing "live" as a lost message. When
-// rpiPxRound rounds the price, the sequence is "live" (amendSource 6,
-// amendResult 0) followed by "live" again. RPI orders: live since 2026-07-28;
-// post-only orders: demo 2026-08-10, production 2026-08-20.
+// Push-behaviour adjustment for post_only, mmp_and_post_only and rpi orders:
+// state "live" is pushed only once the order has actually entered the book
+// (~1 ms after receipt) instead of immediately on receipt, and a placement that
+// fails outright never reports "live" at all -- a post-only order rejected for
+// crossing the BBO, or an RPI order rejected by the price spacing rule, pushes
+// only state "canceled". Do not treat a missing "live" as a lost message. The
+// amend-marked "live" now leads the plain one: a reduce-only post-only order
+// whose size is modified pushes "live" (amendSource 4, amendResult 0) then
+// "live", and rpiPxRound rounding pushes "live" (amendSource 6, amendResult 0)
+// then "live". limit / market / ioc / fok are unaffected. RPI orders: live
+// since 2026-07-28; post_only and mmp_and_post_only: production since
+// 2026-08-20.
 type SubscribeOrdersService struct {
 	c          *WebSocketClient
 	instType   InstType
