@@ -274,4 +274,31 @@ func TestPublicData(t *testing.T) {
 		raw := fetchRawGet(t, c, cx, "/api/v5/public/market-data-history", params, false)
 		assertCovers(t, "market-data-history", raw, resp)
 	}
+
+	// delta-hedge-currencies (full mapping, then filtered by underlying)
+	{
+		params := map[string]string{}
+		resp, err := c.NewGetDeltaHedgeCurrenciesService().Do(cx)
+		if err != nil {
+			t.Fatalf("delta-hedge-currencies: %v", err)
+		}
+		if len(resp) == 0 {
+			t.Fatal("delta-hedge-currencies: no mappings returned")
+		}
+		raw := fetchRawGet(t, c, cx, "/api/v5/public/delta-hedge-currencies", params, false)
+		assertCovers(t, "delta-hedge-currencies", raw, resp)
+
+		filtered, err := c.NewGetDeltaHedgeCurrenciesService().SetCcy("ETH").Do(cx)
+		if err != nil {
+			t.Fatalf("delta-hedge-currencies (ccy=ETH): %v", err)
+		}
+		for _, m := range filtered {
+			if m.Currency != "ETH" {
+				t.Fatalf("delta-hedge-currencies (ccy=ETH): got ccy %q", m.Currency)
+			}
+			if len(m.HedgeCurrencies) == 0 {
+				t.Fatalf("delta-hedge-currencies (ccy=ETH): empty hedgeCcy for %q", m.Currency)
+			}
+		}
+	}
 }

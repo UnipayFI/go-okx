@@ -1127,3 +1127,37 @@ type MarketDataHistoryFile struct {
 	SizeMB        decimal.Decimal `json:"sizeMB"`
 	URL           string          `json:"url"`
 }
+
+// GetDeltaHedgeCurrenciesService -- GET /api/v5/public/delta-hedge-currencies (public)
+//
+// Returns the delta-hedge currency mapping: tokenized assets that track the same
+// underlying asset as another currency and are therefore delta-equivalent for
+// hedging (e.g. AAPL/XAAPL, ETH/BETH, SOL/OKSOL, XAU/XAUT). With no filter it
+// lists every mapped underlying.
+type GetDeltaHedgeCurrenciesService struct {
+	c      *Client
+	params map[string]string
+}
+
+func (c *Client) NewGetDeltaHedgeCurrenciesService() *GetDeltaHedgeCurrenciesService {
+	return &GetDeltaHedgeCurrenciesService{c: c, params: map[string]string{}}
+}
+
+// SetCcy filters by the underlying currency (the "ccy" side of the mapping,
+// e.g. "ETH"); passing a hedge currency such as "BETH" returns no rows.
+func (s *GetDeltaHedgeCurrenciesService) SetCcy(ccy string) *GetDeltaHedgeCurrenciesService {
+	s.params["ccy"] = ccy
+	return s
+}
+
+func (s *GetDeltaHedgeCurrenciesService) Do(ctx context.Context) ([]DeltaHedgeCurrency, error) {
+	req := request.Get(ctx, s.c, "/api/v5/public/delta-hedge-currencies", s.params)
+	return request.DoList[DeltaHedgeCurrency](req)
+}
+
+// DeltaHedgeCurrency maps one underlying currency to the tokenized currencies
+// that share its underlying asset and hedge it one-for-one.
+type DeltaHedgeCurrency struct {
+	Currency        string   `json:"ccy"`
+	HedgeCurrencies []string `json:"hedgeCcy"`
+}
