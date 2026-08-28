@@ -1121,3 +1121,38 @@ func (s *StopCopyLeadTradingService) Do(ctx context.Context) (*CopyResult, error
 	req := request.Post(ctx, s.c, "/api/v5/copytrading/stop-lead-trading", s.body).WithSign()
 	return request.DoOne[CopyResult](req)
 }
+
+// CreateSignalLinkService -- POST /api/v5/copytrade/create-sgl-link (private)
+//
+// Creates a Signal Clone (order sharing) link for one of the caller's own
+// orders. OKX encodes the order parameters (instrument, side, leverage, price,
+// TP/SL, ...) server-side and returns a universal link that prefills the OKX App
+// trading panel for whoever opens it. Only USDT-margined perpetuals (instId
+// ending in "-USDT-SWAP") are supported; other instrument types return an error.
+// Signal Clone must be enabled for the account. Rate limit: 10 requests per
+// second per user.
+//
+// Note the path namespace is /api/v5/copytrade, not /api/v5/copytrading.
+type CreateSignalLinkService struct {
+	c    *Client
+	body map[string]any
+}
+
+func (c *Client) NewCreateSignalLinkService(orderId, instId string) *CreateSignalLinkService {
+	return &CreateSignalLinkService{c: c, body: map[string]any{
+		"orderId": orderId,
+		"instId":  instId,
+	}}
+}
+
+func (s *CreateSignalLinkService) Do(ctx context.Context) (*SignalLink, error) {
+	req := request.Post(ctx, s.c, "/api/v5/copytrade/create-sgl-link", s.body).WithSign()
+	return request.DoOne[SignalLink](req)
+}
+
+// SignalLink is the universal sharing link returned for a Signal Clone order:
+// recipients who open it in the OKX App get the order parameters prefilled in
+// the trading panel.
+type SignalLink struct {
+	ShortLink string `json:"shortLink"`
+}
