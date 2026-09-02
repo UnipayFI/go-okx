@@ -501,6 +501,16 @@ func (s *GetMaxSizeService) SetUnSpotOffset(unSpotOffset bool) *GetMaxSizeServic
 	return s
 }
 
+// SetTradeQuoteCcy sets the quote currency the estimate is denominated in; it
+// must be one of the instrument's tradeQuoteCcyList. It defaults to the quote
+// currency in instId, so an instrument moved from a delisted Crypto-USD id to
+// the corresponding Crypto-USDC one switches from USD to USDC unless "USD" is
+// set here explicitly.
+func (s *GetMaxSizeService) SetTradeQuoteCcy(tradeQuoteCcy string) *GetMaxSizeService {
+	s.params["tradeQuoteCcy"] = tradeQuoteCcy
+	return s
+}
+
 func (s *GetMaxSizeService) Do(ctx context.Context) ([]MaxSize, error) {
 	req := request.Get(ctx, s.c, "/api/v5/account/max-size", s.params).WithSign()
 	return request.DoList[MaxSize](req)
@@ -558,6 +568,16 @@ func (s *GetMaxAvailSizeService) SetUnSpotOffset(unSpotOffset bool) *GetMaxAvail
 // SetQuickMgnType sets the quick-margin borrow type (manual/auto_borrow/auto_borrow_repay).
 func (s *GetMaxAvailSizeService) SetQuickMgnType(quickMgnType string) *GetMaxAvailSizeService {
 	s.params["quickMgnType"] = quickMgnType
+	return s
+}
+
+// SetTradeQuoteCcy sets the quote currency the estimate is denominated in; it
+// must be one of the instrument's tradeQuoteCcyList. It defaults to the quote
+// currency in instId, so an instrument moved from a delisted Crypto-USD id to
+// the corresponding Crypto-USDC one switches from USD to USDC unless "USD" is
+// set here explicitly.
+func (s *GetMaxAvailSizeService) SetTradeQuoteCcy(tradeQuoteCcy string) *GetMaxAvailSizeService {
+	s.params["tradeQuoteCcy"] = tradeQuoteCcy
 	return s
 }
 
@@ -877,6 +897,16 @@ func (s *GetMaxLoanService) SetCcy(ccy string) *GetMaxLoanService {
 // SetMgnCcy sets the margin currency (cross MARGIN).
 func (s *GetMaxLoanService) SetMgnCcy(mgnCcy string) *GetMaxLoanService {
 	s.params["mgnCcy"] = mgnCcy
+	return s
+}
+
+// SetTradeQuoteCcy sets the quote currency the estimate is denominated in; it
+// must be one of the instrument's tradeQuoteCcyList. It defaults to the quote
+// currency in instId, so an instrument moved from a delisted Crypto-USD id to
+// the corresponding Crypto-USDC one switches from USD to USDC unless "USD" is
+// set here explicitly.
+func (s *GetMaxLoanService) SetTradeQuoteCcy(tradeQuoteCcy string) *GetMaxLoanService {
+	s.params["tradeQuoteCcy"] = tradeQuoteCcy
 	return s
 }
 

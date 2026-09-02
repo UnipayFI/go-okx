@@ -104,6 +104,12 @@ type OrderArg struct {
 	// orders already resting on the book when the rule went live. In a batch each
 	// sub-order is validated on its own and carries its own sCode.
 	RpiPxRound bool `json:"rpiPxRound,omitempty"`
+	// TradeQuoteCurrency selects the quote currency the SPOT order trades in; it
+	// must be one of the instrument's tradeQuoteCcyList. It defaults to the quote
+	// currency in InstrumentID, so an order moved from a delisted Crypto-USD
+	// instrument to the corresponding Crypto-USDC one switches from USD to USDC
+	// unless this is set to "USD" explicitly.
+	TradeQuoteCurrency string `json:"tradeQuoteCcy,omitempty"`
 }
 
 // OrderResult is the ack returned by the place / batch-place / cancel /
@@ -200,6 +206,16 @@ func (s *PlaceOrderService) SetTgtCcy(tgtCcy TgtCcy) *PlaceOrderService {
 // SetBanAmend forbids the order from being amended by the system on self-fill.
 func (s *PlaceOrderService) SetBanAmend(banAmend bool) *PlaceOrderService {
 	s.body["banAmend"] = banAmend
+	return s
+}
+
+// SetTradeQuoteCcy sets the quote currency the SPOT order trades in; it must be
+// one of the instrument's tradeQuoteCcyList. It defaults to the quote currency
+// in instId, so an order moved from a delisted Crypto-USD instrument to the
+// corresponding Crypto-USDC one switches from USD to USDC unless "USD" is set
+// here explicitly.
+func (s *PlaceOrderService) SetTradeQuoteCcy(tradeQuoteCcy string) *PlaceOrderService {
+	s.body["tradeQuoteCcy"] = tradeQuoteCcy
 	return s
 }
 
