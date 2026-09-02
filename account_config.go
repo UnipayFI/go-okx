@@ -809,3 +809,36 @@ type PositionBuilderPosition struct {
 	NotionalUSD     decimal.Decimal `json:"notionalUsd"`
 	IsRealPosition  bool            `json:"isRealPos"`
 }
+
+// ActivateFeatureService -- POST /api/v5/account/activate-feature (Trade)
+//
+// Activates an opt-in trading feature for the account. feature "1" activates
+// USDC order-book trading, required before trading the Crypto-USDC spot
+// instruments that replace the delisted Crypto-USD ones (parallel listing from
+// 2026-09-23 08:00 UTC, Crypto-USD delisted 2026-09-30 08:00 UTC).
+//
+// After the migration a request must carry the Crypto-USDC instId. Because
+// tradeQuoteCcy defaults to the quote currency in instId, swapping instId alone
+// also switches the trading quote currency from USD to USDC; to keep trading
+// with USD set tradeQuoteCcy explicitly to "USD".
+//
+// Rate limit: 5 requests per 2 seconds per user.
+type ActivateFeatureService struct {
+	c    *Client
+	body map[string]any
+}
+
+func (c *Client) NewActivateFeatureService(feature string) *ActivateFeatureService {
+	return &ActivateFeatureService{c: c, body: map[string]any{"feature": feature}}
+}
+
+func (s *ActivateFeatureService) Do(ctx context.Context) (*FeatureActivation, error) {
+	req := request.Post(ctx, s.c, "/api/v5/account/activate-feature", s.body).WithSign()
+	return request.DoOne[FeatureActivation](req)
+}
+
+// FeatureActivation is the activate-feature acknowledgement. OKX documents no
+// response fields -- a successful call returns an empty data array, so Do yields
+// (nil, nil) and only the error is meaningful. The type is kept so a later ack
+// payload can be decoded without changing Do's signature.
+type FeatureActivation struct{}
