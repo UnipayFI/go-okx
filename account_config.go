@@ -815,12 +815,16 @@ type PositionBuilderPosition struct {
 // Activates an opt-in trading feature for the account. feature "1" activates
 // USDC order-book trading, required before trading the Crypto-USDC spot
 // instruments that replace the delisted Crypto-USD ones (parallel listing from
-// 2026-09-23 08:00 UTC, Crypto-USD delisted 2026-09-30 08:00 UTC).
+// 2026-09-23 08:00 UTC, Crypto-USD delisted 2026-09-30 08:00 UTC). Accounts
+// already trading USDC instruments are not affected. Activation is not shared:
+// the master account and each sub-account must call this separately, once
+// each. Placing an order before activating is rejected with code 54109.
 //
 // After the migration a request must carry the Crypto-USDC instId. Because
 // tradeQuoteCcy defaults to the quote currency in instId, swapping instId alone
 // also switches the trading quote currency from USD to USDC; to keep trading
-// with USD set tradeQuoteCcy explicitly to "USD".
+// with USD set tradeQuoteCcy explicitly to "USD". The value must be in the
+// instrument's tradeQuoteCcyList for the account (GetAccountInstrumentsService).
 //
 // Rate limit: 5 requests per 2 seconds per user.
 type ActivateFeatureService struct {
