@@ -821,9 +821,12 @@ type PositionBuilderPosition struct {
 // USDC order-book trading, required before trading the Crypto-USDC spot
 // instruments that replace the delisted Crypto-USD ones (parallel listing from
 // 2026-09-23 08:00 UTC, Crypto-USD delisted 2026-09-30 08:00 UTC). Accounts
-// already trading USDC instruments are not affected. Activation is not shared:
-// the master account and each sub-account must call this separately, once
-// each. Placing an order before activating is rejected with code 54109.
+// already trading USDC instruments are not affected. Call it only after order
+// placement is rejected with code 54109; otherwise it is not needed. Activation
+// is shared between the master account and its sub-accounts, so a single call
+// from any of them covers all. Code 51773 only means this activation feature is
+// not supported; whether Crypto-USDC instruments can be traded is decided by
+// whether an order is accepted.
 //
 // After the migration a request must carry the Crypto-USDC instId. Because
 // tradeQuoteCcy defaults to the quote currency in instId, swapping instId alone
