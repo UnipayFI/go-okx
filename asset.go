@@ -740,10 +740,14 @@ func (s *GetDepositWithdrawStatusService) Do(ctx context.Context) ([]DepositWith
 
 // DepositWithdrawStatus is the on-chain progress of a deposit/withdrawal.
 type DepositWithdrawStatus struct {
-	WithdrawalID          string    `json:"wdId"`
-	TransactionID         string    `json:"txId"`
-	State                 string    `json:"state"`
-	EstimatedCompleteTime time.Time `json:"estCompleteTime,format:unixmilli"`
+	WithdrawalID  string `json:"wdId"`
+	TransactionID string `json:"txId"`
+	State         string `json:"state"`
+	// EstimatedCompleteTime is OKX's rough completion estimate, or the zero
+	// time when there is none (""). Unlike other OKX timestamps it is sent as
+	// UTC+8 wall-clock text such as "01/09/2023, 8:10:48 PM"; the SDK-specific
+	// okxUTC8WallClock format (common/json_time.go) reads and writes it.
+	EstimatedCompleteTime time.Time `json:"estCompleteTime,format:okxUTC8WallClock"`
 }
 
 // GetExchangeListService -- GET /api/v5/asset/exchange-list (private)

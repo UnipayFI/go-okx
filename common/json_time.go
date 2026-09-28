@@ -13,17 +13,32 @@ import (
 
 // timeFormat is the parsed `format` tag option of a time.Time field.
 type timeFormat struct {
-	pow10  uint64 // unix formats: 1e0, 1e3, 1e6 or 1e9 units per second
-	layout string // layout formats: the time.Parse layout
+	pow10  uint64         // unix formats: 1e0, 1e3, 1e6 or 1e9 units per second
+	layout string         // layout formats: the time.Parse layout
+	zone   *time.Location // okxFormats: the zone of zoneless layout text
+}
+
+// okxFormats are SDK-specific `format` values for OKX timestamps that no
+// standard format describes. The standard library rejects them as invalid, so
+// a field using one fails loudly outside JSONMarshal/JSONUnmarshal rather than
+// being misread.
+var okxFormats = map[string]timeFormat{
+	// Zoneless wall-clock text in UTC+8, e.g. "01/09/2023, 8:10:48 PM" (the
+	// estCompleteTime of GET /api/v5/asset/deposit-withdraw-status).
+	"okxUTC8WallClock": {layout: "01/02/2006, 3:04:05 PM", zone: time.FixedZone("UTC+8", 8*60*60)},
 }
 
 // parseTimeFormat mirrors encoding/json/v2's interpretation of a time.Time
-// `format` value. ok is false for formats this codec leaves to the standard
-// library: no format (RFC 3339 default), RFC3339/RFC3339Nano (which get extra
-// validation there) and invalid values (reported there).
+// `format` value, plus the okxFormats. ok is false for formats this codec
+// leaves to the standard library: no format (RFC 3339 default),
+// RFC3339/RFC3339Nano (which get extra validation there) and invalid values
+// (reported there).
 func parseTimeFormat(format string) (f timeFormat, ok bool) {
 	if format == "" {
 		return f, false
+	}
+	if f, ok := okxFormats[format]; ok {
+		return f, true
 	}
 	// We assume that an exported constant in the time package will
 	// always start with an uppercase ASCII letter.
@@ -120,9 +135,14 @@ func decodeTime(dec *jsontext.Decoder, t *time.Time) error {
 		*t = time.Time{}
 		return nil
 	}
-	if f.pow10 != 0 {
+	switch {
+	case f.pow10 != 0:
 		*t, err = parseTimeUnix(b, f.pow10)
-	} else {
+	case f.zone != nil:
+		if *t, err = time.ParseInLocation(f.layout, string(b), f.zone); err == nil {
+			*t = t.UTC()
+		}
+	default:
 		*t, err = time.Parse(f.layout, string(b))
 	}
 	return err
@@ -146,6 +166,9 @@ func encodeTime(enc *jsontext.Encoder, t time.Time) error {
 		t = t.Add(-time.Duration(t.Nanosecond() % int(1e9/f.pow10)))
 		b = append(appendTimeUnix(b, t, f.pow10), '"')
 	} else {
+		if f.zone != nil {
+			t = t.In(f.zone)
+		}
 		var err error
 		if b, err = jsontext.AppendQuote(b[:0], t.Format(f.layout)); err != nil {
 			return err

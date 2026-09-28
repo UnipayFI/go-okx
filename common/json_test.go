@@ -224,6 +224,52 @@ func TestLayoutFormats(t *testing.T) {
 	}
 }
 
+// TestOKXFormats covers the SDK-specific formats: okxUTC8WallClock is read
+// in UTC+8 (to a UTC time) and written back in it, the same layout as a
+// standard format keeps its UTC reading, and the standard library alone
+// rejects the SDK-specific name instead of misreading it.
+func TestOKXFormats(t *testing.T) {
+	var v struct {
+		Z  time.Time  `json:"z,format:okxUTC8WallClock"`
+		P  *time.Time `json:"p,format:okxUTC8WallClock"`
+		U  time.Time  `json:"u,format:'01/02/2006\\x2c\\x203:04:05\\x20PM'"`
+		No time.Time  `json:"no,format:okxUTC8WallClock"`
+	}
+	const payload = `{"z":"01/09/2023, 8:10:48 PM","p":"12/31/2025, 12:00:00 AM","u":"01/09/2023, 8:10:48 PM","no":""}`
+	if err := JSONUnmarshal([]byte(payload), &v); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if want := time.Date(2023, 1, 9, 12, 10, 48, 0, time.UTC); v.Z != want {
+		t.Errorf("z = %v, want %v", v.Z, want)
+	}
+	if want := time.Date(2025, 12, 30, 16, 0, 0, 0, time.UTC); v.P == nil || *v.P != want {
+		t.Errorf("p = %v, want %v", v.P, want)
+	}
+	if want := time.Date(2023, 1, 9, 20, 10, 48, 0, time.UTC); v.U != want {
+		t.Errorf("u = %v, want %v", v.U, want)
+	}
+	if !v.No.IsZero() {
+		t.Errorf("no = %v, want zero", v.No)
+	}
+	out, err := JSONMarshal(v)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	if string(out) != payload {
+		t.Errorf("marshal = %s, want %s", out, payload)
+	}
+	if err := JSONUnmarshal([]byte(`{"z":"01/09/2023 20:10:48"}`), &v); err == nil {
+		t.Errorf("mismatched text: want error")
+	}
+	std := jsonexp.ExperimentalSupportFormatTag(true)
+	if err := json.Unmarshal([]byte(`{"z":"01/09/2023, 8:10:48 PM"}`), &v, std); err == nil {
+		t.Errorf("standard library accepted okxUTC8WallClock")
+	}
+	if _, err := json.Marshal(v, std); err == nil {
+		t.Errorf("standard library marshaled okxUTC8WallClock")
+	}
+}
+
 // TestStandardFallback checks that fields without a unix/layout format keep
 // the standard library's behaviour and errors.
 func TestStandardFallback(t *testing.T) {
