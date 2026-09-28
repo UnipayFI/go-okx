@@ -26,5 +26,5 @@ func (s *GetSystemTimeService) Do(ctx context.Context) (*SystemTime, error) {
 
 // SystemTime is the OKX server time.
 type SystemTime struct {
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"ts,format:unixmilli"`
 }

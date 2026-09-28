@@ -48,9 +48,9 @@ func (s *GetSystemStatusService) Do(ctx context.Context) ([]SystemStatus, error)
 type SystemStatus struct {
 	Title               string            `json:"title"`
 	State               SystemStatusState `json:"state"`
-	Begin               time.Time         `json:"begin"`
-	End                 time.Time         `json:"end"`
-	PreOpenBegin        time.Time         `json:"preOpenBegin"`
+	Begin               time.Time         `json:"begin,format:unixmilli"`
+	End                 time.Time         `json:"end,format:unixmilli"`
+	PreOpenBegin        time.Time         `json:"preOpenBegin,format:unixmilli"`
 	Href                string            `json:"href"`
 	ServiceType         string            `json:"serviceType"`
 	System              string            `json:"system"`
@@ -101,8 +101,8 @@ type AnnouncementItem struct {
 	AnnouncementType string    `json:"annType"`
 	Title            string    `json:"title"`
 	URL              string    `json:"url"`
-	PushTime         time.Time `json:"pTime"`
-	BusinessPTime    time.Time `json:"businessPTime"`
+	PushTime         time.Time `json:"pTime,format:unixmilli"`
+	BusinessPTime    time.Time `json:"businessPTime,format:unixmilli"`
 }
 
 // GetAnnouncementTypesService -- GET /api/v5/support/announcement-types (signed)
@@ -192,17 +192,17 @@ func (s *GetEconomicCalendarService) Do(ctx context.Context) ([]EconomicCalendar
 // OKX returns them with trailing units/symbols (e.g. "2.4%", "1.2K", "-").
 type EconomicCalendar struct {
 	CalendarID      string                     `json:"calendarId"`
-	Date            time.Time                  `json:"date"`
+	Date            time.Time                  `json:"date,format:unixmilli"`
 	Region          string                     `json:"region"`
 	Category        string                     `json:"category"`
 	Event           string                     `json:"event"`
-	ReferenceDate   time.Time                  `json:"refDate"`
+	ReferenceDate   time.Time                  `json:"refDate,format:unixmilli"`
 	Actual          string                     `json:"actual"`
 	Previous        string                     `json:"previous"`
 	Forecast        string                     `json:"forecast"`
 	DateSpan        string                     `json:"dateSpan"`
 	Importance      EconomicCalendarImportance `json:"importance"`
-	UpdateTime      time.Time                  `json:"uTime"`
+	UpdateTime      time.Time                  `json:"uTime,format:unixmilli"`
 	PreviousInitial string                     `json:"prevInitial"`
 	Currency        string                     `json:"ccy"`
 	Unit            string                     `json:"unit"`

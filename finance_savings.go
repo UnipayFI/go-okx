@@ -172,7 +172,7 @@ type SavingsLendingHistory struct {
 	Amount    decimal.Decimal `json:"amt"`
 	Earnings  decimal.Decimal `json:"earnings"`
 	Rate      decimal.Decimal `json:"rate"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetSavingsLendingRateSummaryService -- GET /api/v5/finance/savings/lending-rate-summary (Read)
@@ -256,5 +256,5 @@ type SavingsLendingRateHistory struct {
 	Amount      decimal.Decimal `json:"amt"`
 	LendingRate decimal.Decimal `json:"lendingRate"`
 	Rate        decimal.Decimal `json:"rate"`
-	Timestamp   time.Time       `json:"ts"`
+	Timestamp   time.Time       `json:"ts,format:unixmilli"`
 }

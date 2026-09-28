@@ -291,8 +291,8 @@ type RecurringOrder struct {
 	TradeMode            TdMode          `json:"tdMode"`
 	Tag                  string          `json:"tag"`
 	RecurringList        []RecurringItem `json:"recurringList"`
-	CreationTime         time.Time       `json:"cTime"`
-	UpdateTime           time.Time       `json:"uTime"`
+	CreationTime         time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime           time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // GetRecurringSubOrdersService -- GET /api/v5/tradingBot/recurring/sub-orders (Read)
@@ -356,6 +356,6 @@ type RecurringSubOrder struct {
 	Fee                 decimal.Decimal `json:"fee"`
 	FeeCurrency         string          `json:"feeCcy"`
 	Tag                 string          `json:"tag"`
-	CreationTime        time.Time       `json:"cTime"`
-	UpdateTime          time.Time       `json:"uTime"`
+	CreationTime        time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime          time.Time       `json:"uTime,format:unixmilli"`
 }

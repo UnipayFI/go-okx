@@ -530,9 +530,9 @@ type GridAlgoOrder struct {
 	FundingFee             decimal.Decimal    `json:"fundingFee"`
 	RebateTransfer         []GridRebateTrans  `json:"rebateTrans"`
 	TriggerParams          []GridTriggerParam `json:"triggerParams"`
-	TriggerTime            time.Time          `json:"triggerTime"`
-	CreationTime           time.Time          `json:"cTime"`
-	UpdateTime             time.Time          `json:"uTime"`
+	TriggerTime            time.Time          `json:"triggerTime,format:unixmilli"`
+	CreationTime           time.Time          `json:"cTime,format:unixmilli"`
+	UpdateTime             time.Time          `json:"uTime,format:unixmilli"`
 
 	// --- spot/margin grid ("grid") ---
 	BaseSize                decimal.Decimal `json:"baseSz"`
@@ -590,7 +590,7 @@ type GridTriggerParam struct {
 	TimePeriod      string          `json:"timePeriod"`
 	TriggerPrice    decimal.Decimal `json:"triggerPx"`
 	StopType        string          `json:"stopType"`
-	TriggerTime     time.Time       `json:"triggerTime"`
+	TriggerTime     time.Time       `json:"triggerTime,format:unixmilli"`
 }
 
 // GetGridSubOrdersService -- GET /api/v5/tradingBot/grid/sub-orders (Read)
@@ -673,8 +673,8 @@ type GridSubOrder struct {
 	Rebate              decimal.Decimal `json:"rebate"`
 	RebateCurrency      string          `json:"rebateCcy"`
 	Pnl                 decimal.Decimal `json:"pnl"`
-	CreationTime        time.Time       `json:"cTime"`
-	UpdateTime          time.Time       `json:"uTime"`
+	CreationTime        time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime          time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // GetGridPositionsService -- GET /api/v5/tradingBot/grid/positions (Read)
@@ -721,8 +721,8 @@ type GridPosition struct {
 	Last              decimal.Decimal `json:"last"`
 	UPL               decimal.Decimal `json:"upl"`
 	UPLRatio          decimal.Decimal `json:"uplRatio"`
-	CreationTime      time.Time       `json:"cTime"`
-	UpdateTime        time.Time       `json:"uTime"`
+	CreationTime      time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime        time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // WithdrawGridIncomeService -- POST /api/v5/tradingBot/grid/withdraw-income (Trade)

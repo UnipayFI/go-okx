@@ -111,7 +111,7 @@ type EasyConvertResult struct {
 	ToCurrency   string          `json:"toCcy"`
 	FillFromSize decimal.Decimal `json:"fillFromSz"`
 	FillToSize   decimal.Decimal `json:"fillToSz"`
-	UpdateTime   time.Time       `json:"uTime"`
+	UpdateTime   time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // GetEasyConvertHistoryService -- GET /api/v5/trade/easy-convert-history (Read)
@@ -157,7 +157,7 @@ type EasyConvertHistory struct {
 	FillToSize   decimal.Decimal `json:"fillToSz"`
 	Account      string          `json:"acct"`
 	Status       ConvertStatus   `json:"status"`
-	UpdateTime   time.Time       `json:"uTime"`
+	UpdateTime   time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // GetOneClickRepayCurrencyListService -- GET /api/v5/trade/one-click-repay-currency-list (Read)
@@ -235,7 +235,7 @@ type OneClickRepayResult struct {
 	RepayCurrency string          `json:"repayCcy"`
 	FillDebtSize  decimal.Decimal `json:"fillDebtSz"`
 	FillRepaySize decimal.Decimal `json:"fillRepaySz"`
-	UpdateTime    time.Time       `json:"uTime"`
+	UpdateTime    time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // GetOneClickRepayHistoryService -- GET /api/v5/trade/one-click-repay-history (Read)
@@ -280,7 +280,7 @@ type OneClickRepayHistory struct {
 	RepayCurrency string          `json:"repayCcy"`
 	FillRepaySize decimal.Decimal `json:"fillRepaySz"`
 	Status        ConvertStatus   `json:"status"`
-	UpdateTime    time.Time       `json:"uTime"`
+	UpdateTime    time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // GetOneClickRepayCurrencyListV2Service -- GET /api/v5/trade/one-click-repay-currency-list-v2 (Read)
@@ -336,7 +336,7 @@ func (s *TradeOneClickRepayV2Service) Do(ctx context.Context) ([]OneClickRepayRe
 type OneClickRepayResultV2 struct {
 	DebtCurrency      string    `json:"debtCcy"`
 	RepayCurrencyList []string  `json:"repayCcyList"`
-	Timestamp         time.Time `json:"ts"`
+	Timestamp         time.Time `json:"ts,format:unixmilli"`
 }
 
 // GetOneClickRepayHistoryV2Service -- GET /api/v5/trade/one-click-repay-history-v2 (Read)
@@ -381,7 +381,7 @@ type OneClickRepayHistoryV2 struct {
 	FillDebtSize      decimal.Decimal         `json:"fillDebtSz"`
 	Status            ConvertStatus           `json:"status"`
 	OrderIDInfo       []OneClickRepayOrderRef `json:"ordIdInfo"`
-	Timestamp         time.Time               `json:"ts"`
+	Timestamp         time.Time               `json:"ts,format:unixmilli"`
 }
 
 // OneClickRepayOrderRef is a single underlying order placed to execute a
@@ -396,5 +396,5 @@ type OneClickRepayOrderRef struct {
 	FillPrice    decimal.Decimal `json:"fillPx"`
 	FillSize     decimal.Decimal `json:"fillSz"`
 	State        OrdState        `json:"state"`
-	CreationTime time.Time       `json:"cTime"`
+	CreationTime time.Time       `json:"cTime,format:unixmilli"`
 }

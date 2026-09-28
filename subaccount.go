@@ -80,7 +80,7 @@ type SubAccount struct {
 	Frozen         bool           `json:"frozen"`
 	CanTransferOut bool           `json:"canTransOut"`
 	FrozenFunc     []string       `json:"frozenFunc"`
-	Timestamp      time.Time      `json:"ts"`
+	Timestamp      time.Time      `json:"ts,format:unixmilli"`
 }
 
 // ModifySubAccountApiKeyService -- POST /api/v5/users/subaccount/modify-apikey (Trade)
@@ -187,7 +187,7 @@ type SubAccountApiKey struct {
 	SecretKey  string    `json:"secretKey"`
 	Perm       string    `json:"perm"`
 	IP         string    `json:"ip"`
-	Timestamp  time.Time `json:"ts"`
+	Timestamp  time.Time `json:"ts,format:unixmilli"`
 }
 
 // DeleteSubAccountApiKeyService -- POST /api/v5/users/subaccount/delete-apikey (Trade)
@@ -239,7 +239,7 @@ type SubAccountTradingBalance struct {
 	NotionalUSD    decimal.Decimal               `json:"notionalUsd"`
 	OrderFrozen    decimal.Decimal               `json:"ordFroz"`
 	TotalEquity    decimal.Decimal               `json:"totalEq"`
-	UpdateTime     time.Time                     `json:"uTime"`
+	UpdateTime     time.Time                     `json:"uTime,format:unixmilli"`
 	Details        []SubAccountTradingBalanceCcy `json:"details"`
 }
 
@@ -249,7 +249,7 @@ type SubAccountTradingBalanceCcy struct {
 	Currency            string          `json:"ccy"`
 	Equity              decimal.Decimal `json:"eq"`
 	CashBalance         decimal.Decimal `json:"cashBal"`
-	UpdateTime          time.Time       `json:"uTime"`
+	UpdateTime          time.Time       `json:"uTime,format:unixmilli"`
 	IsolatedEquity      decimal.Decimal `json:"isoEq"`
 	AvailableEquity     decimal.Decimal `json:"availEq"`
 	DiscountEquity      decimal.Decimal `json:"disEq"`
@@ -403,7 +403,7 @@ type SubAccountBill struct {
 	Amount     decimal.Decimal `json:"amt"`
 	Type       string          `json:"type"`
 	SubAccount string          `json:"subAcct"`
-	Timestamp  time.Time       `json:"ts"`
+	Timestamp  time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubAccountTransferService -- POST /api/v5/asset/subaccount/transfer (Trade)
@@ -579,5 +579,5 @@ type ManagedSubAccountBill struct {
 	Amount     decimal.Decimal `json:"amt"`
 	SubAccount string          `json:"subAcct"`
 	SubUID     string          `json:"subUid"`
-	Timestamp  time.Time       `json:"ts"`
+	Timestamp  time.Time       `json:"ts,format:unixmilli"`
 }

@@ -197,7 +197,7 @@ type Bill struct {
 	BillID                string          `json:"billId"`
 	Type                  string          `json:"type"`
 	SubType               string          `json:"subType"`
-	Timestamp             time.Time       `json:"ts"`
+	Timestamp             time.Time       `json:"ts,format:unixmilli"`
 	BalanceChange         decimal.Decimal `json:"balChg"`
 	PositionBalanceChange decimal.Decimal `json:"posBalChg"`
 	Balance               decimal.Decimal `json:"bal"`
@@ -220,7 +220,7 @@ type Bill struct {
 	Tag                   string          `json:"tag"`
 	EarnAmount            decimal.Decimal `json:"earnAmt"`
 	EarnAPR               decimal.Decimal `json:"earnApr"`
-	FillTime              time.Time       `json:"fillTime"`
+	FillTime              time.Time       `json:"fillTime,format:unixmilli"`
 	FillForwardPrice      decimal.Decimal `json:"fillFwdPx"`
 	FillIndexPrice        decimal.Decimal `json:"fillIdxPx"`
 	FillMarkPrice         decimal.Decimal `json:"fillMarkPx"`
@@ -290,7 +290,7 @@ func (s *GetBillsHistoryArchiveService) Do(ctx context.Context) (*BillsHistoryAr
 // BillsHistoryArchive is the state and download link of a quarterly bills
 // archive request.
 type BillsHistoryArchive struct {
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"ts,format:unixmilli"`
 	FileHref  string    `json:"fileHref"`
 	State     string    `json:"state"`
 }

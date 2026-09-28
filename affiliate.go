@@ -62,14 +62,14 @@ func (s *GetAffiliateInviteeDetailService) Do(ctx context.Context) (*AffiliateIn
 // 51620), so the field set is modeled from the OKX affiliate doc field table.
 type AffiliateInviteeDetail struct {
 	InviteeLevel                string          `json:"inviteeLv"`
-	JoinTime                    time.Time       `json:"joinTime"`
+	JoinTime                    time.Time       `json:"joinTime,format:unixmilli"`
 	InviteeRebateRate           decimal.Decimal `json:"inviteeRebateRate"`
 	TotalCommission             decimal.Decimal `json:"totalCommission"`
-	FirstTradeTime              time.Time       `json:"firstTradeTime"`
+	FirstTradeTime              time.Time       `json:"firstTradeTime,format:unixmilli"`
 	Level                       string          `json:"level"`
 	DepositAmount               decimal.Decimal `json:"depAmt"`
 	Volume                      decimal.Decimal `json:"vol"`
-	KYCTime                     time.Time       `json:"kycTime"`
+	KYCTime                     time.Time       `json:"kycTime,format:unixmilli"`
 	Region                      string          `json:"region"`
 	AffiliateCode               string          `json:"affiliateCode"`
 	InvitedTradeVolumeThirtyDay decimal.Decimal `json:"invitedTradeVolThirtyD"`
@@ -210,13 +210,13 @@ func (s *GetAffiliateInviteeListService) Do(ctx context.Context) ([]AffiliateInv
 type AffiliateInvitee struct {
 	UID             string          `json:"uid"`
 	Country         string          `json:"country"`
-	JoinTime        time.Time       `json:"joinTime"`
-	FirstTradeTime  time.Time       `json:"firstTradeTime"`
+	JoinTime        time.Time       `json:"joinTime,format:unixmilli"`
+	FirstTradeTime  time.Time       `json:"firstTradeTime,format:unixmilli"`
 	ChannelName     string          `json:"channelName"`
 	RebateRate      decimal.Decimal `json:"rebateRate"`
 	FeeTierRank     string          `json:"feeTierRank"`
 	KYCStatus       string          `json:"kycStatus"`
-	KYCTime         time.Time       `json:"kycTime"`
+	KYCTime         time.Time       `json:"kycTime,format:unixmilli"`
 	DepositAmount   decimal.Decimal `json:"depAmt"`
 	TotalVolume     decimal.Decimal `json:"totalVol"`
 	TotalFee        decimal.Decimal `json:"totalFee"`

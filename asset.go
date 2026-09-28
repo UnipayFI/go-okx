@@ -83,8 +83,8 @@ type Currency struct {
 	MainNet                     bool            `json:"mainNet"`
 	NeedTag                     bool            `json:"needTag"`
 	ContractAddress             string          `json:"ctAddr"`
-	DepositEstimatedOpenTime    time.Time       `json:"depEstOpenTime"`
-	WithdrawalEstimatedOpenTime time.Time       `json:"wdEstOpenTime"`
+	DepositEstimatedOpenTime    time.Time       `json:"depEstOpenTime,format:unixmilli"`
+	WithdrawalEstimatedOpenTime time.Time       `json:"wdEstOpenTime,format:unixmilli"`
 	DepositQuotaFixed           decimal.Decimal `json:"depQuotaFixed"`
 	UsedDepositQuotaFixed       decimal.Decimal `json:"usedDepQuotaFixed"`
 	DepositQuoteDailyLayer2     decimal.Decimal `json:"depQuoteDailyLayer2"`
@@ -195,7 +195,7 @@ func (s *GetAssetValuationService) Do(ctx context.Context) (*AssetValuation, err
 // breakdown.
 type AssetValuation struct {
 	TotalBalance decimal.Decimal       `json:"totalBal"`
-	Timestamp    time.Time             `json:"ts"`
+	Timestamp    time.Time             `json:"ts,format:unixmilli"`
 	Details      AssetValuationDetails `json:"details"`
 }
 
@@ -386,7 +386,7 @@ type AssetBill struct {
 	Balance       decimal.Decimal `json:"bal"`
 	Type          string          `json:"type"`
 	Notes         string          `json:"notes"`
-	Timestamp     time.Time       `json:"ts"`
+	Timestamp     time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetDepositAddressService -- GET /api/v5/asset/deposit-address (private)
@@ -505,7 +505,7 @@ type DepositHistory struct {
 	FromWithdrawalID          string          `json:"fromWdId"`
 	State                     string          `json:"state"`
 	ActualDepositBlockConfirm decimal.Decimal `json:"actualDepBlkConfirm"`
-	Timestamp                 time.Time       `json:"ts"`
+	Timestamp                 time.Time       `json:"ts,format:unixmilli"`
 }
 
 // WithdrawalService -- POST /api/v5/asset/withdrawal (private)
@@ -674,7 +674,7 @@ type WithdrawalHistory struct {
 	Chain            string          `json:"chain"`
 	NonTradableAsset bool            `json:"nonTradableAsset"`
 	Amount           decimal.Decimal `json:"amt"`
-	Timestamp        time.Time       `json:"ts"`
+	Timestamp        time.Time       `json:"ts,format:unixmilli"`
 	From             string          `json:"from"`
 	AreaCodeFrom     string          `json:"areaCodeFrom"`
 	To               string          `json:"to"`
@@ -743,7 +743,7 @@ type DepositWithdrawStatus struct {
 	WithdrawalID          string    `json:"wdId"`
 	TransactionID         string    `json:"txId"`
 	State                 string    `json:"state"`
-	EstimatedCompleteTime time.Time `json:"estCompleteTime"`
+	EstimatedCompleteTime time.Time `json:"estCompleteTime,format:unixmilli"`
 }
 
 // GetExchangeListService -- GET /api/v5/asset/exchange-list (private)
@@ -795,7 +795,7 @@ func (s *ApplyMonthlyStatementService) Do(ctx context.Context) (*MonthlyStatemen
 
 // MonthlyStatementApply is the acknowledgement of a monthly-statement request.
 type MonthlyStatementApply struct {
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"ts,format:unixmilli"`
 }
 
 // GetMonthlyStatementService -- GET /api/v5/asset/monthly-statement (private)
@@ -819,5 +819,5 @@ func (s *GetMonthlyStatementService) Do(ctx context.Context) (*MonthlyStatement,
 type MonthlyStatement struct {
 	FileHref  string    `json:"fileHref"`
 	State     string    `json:"state"`
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"ts,format:unixmilli"`
 }

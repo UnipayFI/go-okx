@@ -24,7 +24,7 @@ import (
 // data frame is an array-of-arrays with 9 columns:
 // [ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm].
 type WsCandle struct {
-	Timestamp           time.Time
+	Timestamp           time.Time `json:",format:unixmilli"`
 	Open                decimal.Decimal
 	High                decimal.Decimal
 	Low                 decimal.Decimal
@@ -43,7 +43,7 @@ type WsCandleHandler func([]WsCandle, error)
 // and "index-candle{bar}" channels. The raw data frame is an array-of-arrays
 // with 6 columns: [ts, o, h, l, c, confirm] (no volume).
 type WsIndexCandle struct {
-	Timestamp time.Time
+	Timestamp time.Time `json:",format:unixmilli"`
 	Open      decimal.Decimal
 	High      decimal.Decimal
 	Low       decimal.Decimal
@@ -59,7 +59,7 @@ type WsIndexCandleHandler func([]WsIndexCandle, error)
 // The raw data frame is an array-of-arrays with 7 columns:
 // [ts, o, h, l, c, vol, confirm].
 type WsSprdCandle struct {
-	Timestamp time.Time
+	Timestamp time.Time `json:",format:unixmilli"`
 	Open      decimal.Decimal
 	High      decimal.Decimal
 	Low       decimal.Decimal
@@ -303,7 +303,7 @@ type WsSprdTicker struct {
 	High24h   decimal.Decimal `json:"high24h"`
 	Low24h    decimal.Decimal `json:"low24h"`
 	Volume24h decimal.Decimal `json:"vol24h"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribeSprdTickersService -- "sprd-tickers" channel (business; public).
@@ -329,7 +329,7 @@ type WsSprdPublicTrade struct {
 	Price     decimal.Decimal `json:"px"`
 	Size      decimal.Decimal `json:"sz"`
 	Side      Side            `json:"side"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribeSprdPublicTradesService -- "sprd-public-trades" channel (business; public).
@@ -352,7 +352,7 @@ func (s *SubscribeSprdPublicTradesService) Do(ctx context.Context, cb WsHandler[
 type WsSprdBooks struct {
 	Asks       [][]string `json:"asks"`
 	Bids       [][]string `json:"bids"`
-	Timestamp  time.Time  `json:"ts"`
+	Timestamp  time.Time  `json:"ts,format:unixmilli"`
 	SequenceID int64      `json:"seqId"`
 }
 
@@ -408,7 +408,7 @@ type WsAlgoOrder struct {
 	ActualSize                 decimal.Decimal `json:"actualSz"`
 	ActualPrice                decimal.Decimal `json:"actualPx"`
 	ActualSide                 string          `json:"actualSide"`
-	TriggerTime                time.Time       `json:"triggerTime"`
+	TriggerTime                time.Time       `json:"triggerTime,format:unixmilli"`
 	Tag                        string          `json:"tag"`
 	ReduceOnly                 string          `json:"reduceOnly"`
 	Last                       decimal.Decimal `json:"last"`
@@ -416,8 +416,8 @@ type WsAlgoOrder struct {
 	AmendResult                string          `json:"amendResult"`
 	RequestID                  string          `json:"reqId"`
 	AmendPriceOnTriggerType    string          `json:"amendPxOnTriggerType"`
-	CreationTime               time.Time       `json:"cTime"`
-	UpdateTime                 time.Time       `json:"uTime"`
+	CreationTime               time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime                 time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // SubscribeOrdersAlgoService -- "orders-algo" channel (business; login).
@@ -483,15 +483,15 @@ type WsAdvanceAlgoOrder struct {
 	ActualPrice       decimal.Decimal `json:"actualPx"`
 	ActualSide        string          `json:"actualSide"`
 	NotionalUSD       decimal.Decimal `json:"notionalUsd"`
-	TriggerTime       time.Time       `json:"triggerTime"`
+	TriggerTime       time.Time       `json:"triggerTime,format:unixmilli"`
 	Tag               string          `json:"tag"`
 	Count             string          `json:"count"`
 	Last              decimal.Decimal `json:"last"`
 	FailCode          string          `json:"failCode"`
 	AmendResult       string          `json:"amendResult"`
 	RequestID         string          `json:"reqId"`
-	CreationTime      time.Time       `json:"cTime"`
-	UpdateTime        time.Time       `json:"uTime"`
+	CreationTime      time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime        time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // SubscribeAlgoAdvanceService -- "algo-advance" channel (business; login).
@@ -557,9 +557,9 @@ type WsGridOrder struct {
 	FundingFee             decimal.Decimal    `json:"fundingFee"`
 	RebateTransfer         []GridRebateTrans  `json:"rebateTrans"`
 	TriggerParams          []GridTriggerParam `json:"triggerParams"`
-	TriggerTime            time.Time          `json:"triggerTime"`
-	CreationTime           time.Time          `json:"cTime"`
-	UpdateTime             time.Time          `json:"uTime"`
+	TriggerTime            time.Time          `json:"triggerTime,format:unixmilli"`
+	CreationTime           time.Time          `json:"cTime,format:unixmilli"`
+	UpdateTime             time.Time          `json:"uTime,format:unixmilli"`
 
 	// --- spot/moon grid ("grid"/"moon_grid") ---
 	BaseSize                decimal.Decimal `json:"baseSz"`
@@ -697,8 +697,8 @@ type WsGridPosition struct {
 	Last              decimal.Decimal `json:"last"`
 	UPL               decimal.Decimal `json:"upl"`
 	UPLRatio          decimal.Decimal `json:"uplRatio"`
-	CreationTime      time.Time       `json:"cTime"`
-	UpdateTime        time.Time       `json:"uTime"`
+	CreationTime      time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime        time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // SubscribeGridPositionsService -- "grid-positions" channel (business; login).
@@ -747,8 +747,8 @@ type WsGridSubOrder struct {
 	Rebate              decimal.Decimal `json:"rebate"`
 	RebateCurrency      string          `json:"rebateCcy"`
 	Pnl                 decimal.Decimal `json:"pnl"`
-	CreationTime        time.Time       `json:"cTime"`
-	UpdateTime          time.Time       `json:"uTime"`
+	CreationTime        time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime          time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // SubscribeGridSubOrdersService -- "grid-sub-orders" channel (business; login).
@@ -775,17 +775,17 @@ func (s *SubscribeGridSubOrdersService) Do(ctx context.Context, cb WsHandler[WsG
 // field set matches the REST economic-calendar response.
 type WsEconomicCalendar struct {
 	CalendarID      string                     `json:"calendarId"`
-	Date            time.Time                  `json:"date"`
+	Date            time.Time                  `json:"date,format:unixmilli"`
 	Region          string                     `json:"region"`
 	Category        string                     `json:"category"`
 	Event           string                     `json:"event"`
-	ReferenceDate   time.Time                  `json:"refDate"`
+	ReferenceDate   time.Time                  `json:"refDate,format:unixmilli"`
 	Actual          string                     `json:"actual"`
 	Previous        string                     `json:"previous"`
 	Forecast        string                     `json:"forecast"`
 	DateSpan        string                     `json:"dateSpan"`
 	Importance      EconomicCalendarImportance `json:"importance"`
-	UpdateTime      time.Time                  `json:"uTime"`
+	UpdateTime      time.Time                  `json:"uTime,format:unixmilli"`
 	PreviousInitial string                     `json:"prevInitial"`
 	Currency        string                     `json:"ccy"`
 	Unit            string                     `json:"unit"`

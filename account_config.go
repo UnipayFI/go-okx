@@ -294,7 +294,7 @@ func (s *ActivateOptionService) Do(ctx context.Context) (*ActivateOption, error)
 // also return a "result" boolean.
 type ActivateOption struct {
 	Result    bool      `json:"result"`
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"ts,format:unixmilli"`
 }
 
 // SetAutoLoanService -- POST /api/v5/account/set-auto-loan (Trade)
@@ -385,7 +385,7 @@ func (s *GetMMPConfigService) Do(ctx context.Context) ([]MMPConfig, error) {
 type MMPConfig struct {
 	InstrumentFamily string          `json:"instFamily"`
 	MMPFrozen        bool            `json:"mmpFrozen"`
-	MMPFrozenUntil   time.Time       `json:"mmpFrozenUntil"`
+	MMPFrozenUntil   time.Time       `json:"mmpFrozenUntil,format:unixmilli"`
 	TimeInterval     decimal.Decimal `json:"timeInterval"`
 	FrozenInterval   decimal.Decimal `json:"frozenInterval"`
 	QtyLimit         decimal.Decimal `json:"qtyLimit"`
@@ -502,7 +502,7 @@ type MovePositions struct {
 	FromAccount  string             `json:"fromAcct"`
 	ToAccount    string             `json:"toAcct"`
 	Legs         []MovePositionsLeg `json:"legs"`
-	Timestamp    time.Time          `json:"ts"`
+	Timestamp    time.Time          `json:"ts,format:unixmilli"`
 }
 
 // MovePositionsLeg is one moved-position leg in a move-positions response.
@@ -592,7 +592,7 @@ type MovePositionsHistory struct {
 	ClientID     string                    `json:"clientId"`
 	BlockTradeID string                    `json:"blockTdId"`
 	State        string                    `json:"state"`
-	Timestamp    time.Time                 `json:"ts"`
+	Timestamp    time.Time                 `json:"ts,format:unixmilli"`
 	FromAccount  string                    `json:"fromAcct"`
 	ToAccount    string                    `json:"toAcct"`
 	Legs         []MovePositionsHistoryLeg `json:"legs"`
@@ -710,7 +710,7 @@ type PositionBuilder struct {
 	MarginRatio     decimal.Decimal           `json:"marginRatio"`
 	UPL             decimal.Decimal           `json:"upl"`
 	AccountLeverage decimal.Decimal           `json:"acctLever"`
-	Timestamp       time.Time                 `json:"ts"`
+	Timestamp       time.Time                 `json:"ts,format:unixmilli"`
 	Assets          []PositionBuilderAsset    `json:"assets"`
 	RiskUnitData    []PositionBuilderRiskUnit `json:"riskUnitData"`
 	Positions       []PositionBuilderPosition `json:"positions"`

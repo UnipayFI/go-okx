@@ -247,7 +247,7 @@ type FlexLoanHistory struct {
 	Type        string          `json:"type"`
 	Currency    string          `json:"ccy"`
 	Amount      decimal.Decimal `json:"amt"`
-	Timestamp   time.Time       `json:"ts"`
+	Timestamp   time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetFlexLoanInterestAccruedService -- GET /api/v5/finance/flexible-loan/interest-accrued (Read)
@@ -298,7 +298,7 @@ type FlexLoanInterestAccrued struct {
 	Currency     string          `json:"ccy"`
 	Interest     decimal.Decimal `json:"interest"`
 	InterestRate decimal.Decimal `json:"interestRate"`
-	Timestamp    time.Time       `json:"ts"`
+	Timestamp    time.Time       `json:"ts,format:unixmilli"`
 }
 
 // ---------------------------------------------------------------------------
@@ -380,7 +380,7 @@ func (s *GetFixedLoanLendingApyHistoryService) Do(ctx context.Context) ([]FixedL
 // FixedLoanLendingApyHistory is one historical APY data point.
 type FixedLoanLendingApyHistory struct {
 	Rate      decimal.Decimal `json:"rate"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetFixedLoanPendingLendingVolumeService -- GET /api/v5/finance/fixed-loan/pending-lending-volume (Read)
@@ -564,8 +564,8 @@ type FixedLoanLendingOrder struct {
 	SettledRate     decimal.Decimal `json:"settledRate"`
 	PendingAmount   decimal.Decimal `json:"pendingAmt"`
 	UsedAmount      decimal.Decimal `json:"usedAmt"`
-	CreationTime    time.Time       `json:"cTime"`
-	UpdateTime      time.Time       `json:"uTime"`
+	CreationTime    time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime      time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // GetFixedLoanLendingSubOrdersService -- GET /api/v5/finance/fixed-loan/lending-sub-orders (Read)
@@ -597,8 +597,8 @@ type FixedLoanLendingSubOrder struct {
 	Earnings           decimal.Decimal `json:"earnings"`
 	State              string          `json:"state"`
 	SettledRate        decimal.Decimal `json:"settledRate"`
-	CreationTime       time.Time       `json:"cTime"`
-	UpdateTime         time.Time       `json:"uTime"`
-	EffectiveTimestamp time.Time       `json:"effectiveTs"`
-	ExpiryTimestamp    time.Time       `json:"expiryTs"`
+	CreationTime       time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime         time.Time       `json:"uTime,format:unixmilli"`
+	EffectiveTimestamp time.Time       `json:"effectiveTs,format:unixmilli"`
+	ExpiryTimestamp    time.Time       `json:"expiryTs,format:unixmilli"`
 }

@@ -49,7 +49,7 @@ type IndexTicker struct {
 	Open24h        decimal.Decimal `json:"open24h"`
 	Low24h         decimal.Decimal `json:"low24h"`
 	StartOfDayUTC8 decimal.Decimal `json:"sodUtc8"`
-	Timestamp      time.Time       `json:"ts"`
+	Timestamp      time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetIndexCandlesService -- GET /api/v5/market/index-candles (public)
@@ -239,7 +239,7 @@ func (s *GetHistoryMarkPriceCandlesService) Do(ctx context.Context) ([]IndexCand
 // these endpoints as arrays-of-arrays with 6 columns: [ts, o, h, l, c, confirm].
 // Confirm is "0" for an in-progress bar and "1" once the bar is closed.
 type IndexCandle struct {
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 	Open      decimal.Decimal `json:"o"`
 	High      decimal.Decimal `json:"h"`
 	Low       decimal.Decimal `json:"l"`
@@ -341,7 +341,7 @@ func (s *GetIndexComponentsService) Do(ctx context.Context) (*IndexComponents, e
 type IndexComponents struct {
 	Index      string           `json:"index"`
 	Last       decimal.Decimal  `json:"last"`
-	Timestamp  time.Time        `json:"ts"`
+	Timestamp  time.Time        `json:"ts,format:unixmilli"`
 	Components []IndexComponent `json:"components"`
 }
 

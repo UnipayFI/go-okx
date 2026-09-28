@@ -196,6 +196,6 @@ type Fill struct {
 	FeeCurrency         string          `json:"feeCcy"`
 	Fee                 decimal.Decimal `json:"fee"`
 	TradeQuoteCurrency  string          `json:"tradeQuoteCcy"`
-	Timestamp           time.Time       `json:"ts"`
-	FillTime            time.Time       `json:"fillTime"`
+	Timestamp           time.Time       `json:"ts,format:unixmilli"`
+	FillTime            time.Time       `json:"fillTime,format:unixmilli"`
 }

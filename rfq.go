@@ -130,13 +130,13 @@ func (s *GetRfqsService) Do(ctx context.Context) ([]Rfq, error) {
 // Rfq is one RFQ record. The validating account has no RFQ history, so the field
 // set is modeled from the OKX doc field table.
 type Rfq struct {
-	CreateTime     time.Time `json:"cTime"`
-	UpdateTime     time.Time `json:"uTime"`
+	CreateTime     time.Time `json:"cTime,format:unixmilli"`
+	UpdateTime     time.Time `json:"uTime,format:unixmilli"`
 	TraderCode     string    `json:"traderCode"`
 	RFQID          string    `json:"rfqId"`
 	ClientRFQID    string    `json:"clRfqId"`
 	State          RfqState  `json:"state"`
-	ValidUntil     time.Time `json:"validUntil"`
+	ValidUntil     time.Time `json:"validUntil,format:unixmilli"`
 	Counterparties []string  `json:"counterparties"`
 	Legs           []RfqLeg  `json:"legs"`
 	AllowPartial   bool      `json:"allowPartialExecution"`
@@ -220,15 +220,15 @@ func (s *GetRfqQuotesService) Do(ctx context.Context) ([]RfqQuote, error) {
 // RfqQuote is one quote record. The validating account has no quote history, so
 // the field set is modeled from the OKX doc field table.
 type RfqQuote struct {
-	CreateTime    time.Time     `json:"cTime"`
-	UpdateTime    time.Time     `json:"uTime"`
+	CreateTime    time.Time     `json:"cTime,format:unixmilli"`
+	UpdateTime    time.Time     `json:"uTime,format:unixmilli"`
 	TraderCode    string        `json:"traderCode"`
 	RFQID         string        `json:"rfqId"`
 	ClientRFQID   string        `json:"clRfqId"`
 	QuoteID       string        `json:"quoteId"`
 	ClientQuoteID string        `json:"clQuoteId"`
 	State         RfqQuoteState `json:"state"`
-	ValidUntil    time.Time     `json:"validUntil"`
+	ValidUntil    time.Time     `json:"validUntil,format:unixmilli"`
 	QuoteSide     RfqQuoteSide  `json:"quoteSide"`
 	Legs          []RfqQuoteLeg `json:"legs"`
 }
@@ -323,7 +323,7 @@ func (s *GetRfqTradesService) Do(ctx context.Context) ([]RfqTrade, error) {
 // RfqTrade is one executed block trade. The validating account has no block-trade
 // history, so the field set is modeled from the OKX doc field table.
 type RfqTrade struct {
-	CreateTime      time.Time     `json:"cTime"`
+	CreateTime      time.Time     `json:"cTime,format:unixmilli"`
 	RFQID           string        `json:"rfqId"`
 	ClientRFQID     string        `json:"clRfqId"`
 	QuoteID         string        `json:"quoteId"`
@@ -389,7 +389,7 @@ type RfqPublicTrade struct {
 	GroupID      string              `json:"groupId"`
 	Strategy     string              `json:"strategy"`
 	Inverse      bool                `json:"inverse"`
-	CreateTime   time.Time           `json:"cTime"`
+	CreateTime   time.Time           `json:"cTime,format:unixmilli"`
 	Legs         []RfqPublicTradeLeg `json:"legs"`
 }
 
@@ -439,7 +439,7 @@ type RfqBlockTicker struct {
 	InstrumentID      string          `json:"instId"`
 	VolumeCurrency24h decimal.Decimal `json:"volCcy24h"`
 	Volume24h         decimal.Decimal `json:"vol24h"`
-	Timestamp         time.Time       `json:"ts"`
+	Timestamp         time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetRfqBlockTickerService -- GET /api/v5/market/block-ticker (public)
@@ -520,7 +520,7 @@ type RfqMmpConfig struct {
 	FrozenInterval decimal.Decimal `json:"frozenInterval"`
 	CountLimit     decimal.Decimal `json:"countLimit"`
 	MMPFrozen      bool            `json:"mmpFrozen"`
-	MMPFrozenUntil time.Time       `json:"mmpFrozenUntil"`
+	MMPFrozenUntil time.Time       `json:"mmpFrozenUntil,format:unixmilli"`
 }
 
 // --- State-changing endpoints (Trade): implemented but NEVER exercised by the
@@ -659,7 +659,7 @@ func (s *CancelAllRfqsService) Do(ctx context.Context) (*RfqTimestampAck, error)
 // RfqTimestampAck is the ack of a bulk cancel/reset action, carrying the server
 // timestamp at which the action took effect.
 type RfqTimestampAck struct {
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"ts,format:unixmilli"`
 }
 
 // ExecuteQuoteService -- POST /api/v5/rfq/execute-quote (Trade)
@@ -866,8 +866,8 @@ func (s *CancelAllAfterRfqService) Do(ctx context.Context) (*RfqCancelAllAfter, 
 
 // RfqCancelAllAfter is the ack of a cancel-all-after action.
 type RfqCancelAllAfter struct {
-	TriggerTime time.Time `json:"triggerTime"`
-	Timestamp   time.Time `json:"ts"`
+	TriggerTime time.Time `json:"triggerTime,format:unixmilli"`
+	Timestamp   time.Time `json:"ts,format:unixmilli"`
 }
 
 // SetRfqMmpService -- POST /api/v5/rfq/set-mmp (Trade)

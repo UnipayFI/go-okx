@@ -253,9 +253,9 @@ type StakingActiveOrder struct {
 	APY                      decimal.Decimal         `json:"apy"`
 	InvestmentData           []StakingOrderInvest    `json:"investData"`
 	EarningData              []StakingOrderEarn      `json:"earningData"`
-	PurchasedTime            time.Time               `json:"purchasedTime"`
-	EstimatedSettlementTime  time.Time               `json:"estSettlementTime"`
-	CancelRedemptionDeadline time.Time               `json:"cancelRedemptionDeadline"`
+	PurchasedTime            time.Time               `json:"purchasedTime,format:unixmilli"`
+	EstimatedSettlementTime  time.Time               `json:"estSettlementTime,format:unixmilli"`
+	CancelRedemptionDeadline time.Time               `json:"cancelRedemptionDeadline,format:unixmilli"`
 	FastRedemptionData       []StakingFastRedemption `json:"fastRedemptionData"`
 	Tag                      string                  `json:"tag"`
 }
@@ -348,8 +348,8 @@ type StakingHistoryOrder struct {
 	APY            decimal.Decimal      `json:"apy"`
 	InvestmentData []StakingOrderInvest `json:"investData"`
 	EarningData    []StakingOrderEarn   `json:"earningData"`
-	PurchasedTime  time.Time            `json:"purchasedTime"`
-	RedeemedTime   time.Time            `json:"redeemedTime"`
+	PurchasedTime  time.Time            `json:"purchasedTime,format:unixmilli"`
+	RedeemedTime   time.Time            `json:"redeemedTime,format:unixmilli"`
 	Tag            string               `json:"tag"`
 }
 
@@ -437,7 +437,7 @@ type EthStakingBalance struct {
 	Amount                decimal.Decimal `json:"amt"`
 	LatestInterestAccrual decimal.Decimal `json:"latestInterestAccrual"`
 	TotalInterestAccrual  decimal.Decimal `json:"totalInterestAccrual"`
-	Timestamp             time.Time       `json:"ts"`
+	Timestamp             time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetEthStakingHistoryService -- GET /api/v5/finance/staking-defi/eth/purchase-redeem-history (Read)
@@ -494,9 +494,9 @@ type EthStakingHistory struct {
 	Type                   string          `json:"type"`
 	Amount                 decimal.Decimal `json:"amt"`
 	Status                 string          `json:"status"`
-	RequestTime            time.Time       `json:"requestTime"`
-	CompletedTime          time.Time       `json:"completedTime"`
-	EstimatedCompletedTime time.Time       `json:"estCompletedTime"`
+	RequestTime            time.Time       `json:"requestTime,format:unixmilli"`
+	CompletedTime          time.Time       `json:"completedTime,format:unixmilli"`
+	EstimatedCompletedTime time.Time       `json:"estCompletedTime,format:unixmilli"`
 }
 
 // GetEthStakingApyHistoryService -- GET /api/v5/finance/staking-defi/eth/apy-history (Read)
@@ -519,7 +519,7 @@ func (s *GetEthStakingApyHistoryService) Do(ctx context.Context) ([]StakingApyHi
 // StakingApyHistory is one daily APY point of the ETH/SOL staking APY history.
 type StakingApyHistory struct {
 	Rate      decimal.Decimal `json:"rate"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetSolStakingProductInfoService -- GET /api/v5/finance/staking-defi/sol/product-info (Read)
@@ -608,7 +608,7 @@ type SolStakingBalance struct {
 	Amount                decimal.Decimal `json:"amt"`
 	LatestInterestAccrual decimal.Decimal `json:"latestInterestAccrual"`
 	TotalInterestAccrual  decimal.Decimal `json:"totalInterestAccrual"`
-	Timestamp             time.Time       `json:"ts"`
+	Timestamp             time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetSolStakingHistoryService -- GET /api/v5/finance/staking-defi/sol/purchase-redeem-history (Read)
@@ -665,9 +665,9 @@ type SolStakingHistory struct {
 	Type                   string          `json:"type"`
 	Amount                 decimal.Decimal `json:"amt"`
 	Status                 string          `json:"status"`
-	RequestTime            time.Time       `json:"requestTime"`
-	CompletedTime          time.Time       `json:"completedTime"`
-	EstimatedCompletedTime time.Time       `json:"estCompletedTime"`
+	RequestTime            time.Time       `json:"requestTime,format:unixmilli"`
+	CompletedTime          time.Time       `json:"completedTime,format:unixmilli"`
+	EstimatedCompletedTime time.Time       `json:"estCompletedTime,format:unixmilli"`
 }
 
 // GetSolStakingApyHistoryService -- GET /api/v5/finance/staking-defi/sol/apy-history (Read)

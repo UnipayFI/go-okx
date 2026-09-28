@@ -677,7 +677,7 @@ type AlgoOrder struct {
 	ActualSize                 decimal.Decimal `json:"actualSz"`
 	ActualPrice                decimal.Decimal `json:"actualPx"`
 	ActualSide                 string          `json:"actualSide"`
-	TriggerTime                time.Time       `json:"triggerTime"`
+	TriggerTime                time.Time       `json:"triggerTime,format:unixmilli"`
 	PriceVariation             decimal.Decimal `json:"pxVar"`
 	PriceSpread                decimal.Decimal `json:"pxSpread"`
 	SizeLimit                  decimal.Decimal `json:"szLimit"`
@@ -705,8 +705,8 @@ type AlgoOrder struct {
 	Tag                     string              `json:"tag"`
 	CancelOnClosePosition   string              `json:"cxlOnClosePos"`
 	IsTradeBorrowMode       string              `json:"isTradeBorrowMode"`
-	CreationTime            time.Time           `json:"cTime"`
-	UpdateTime              time.Time           `json:"uTime"`
+	CreationTime            time.Time           `json:"cTime,format:unixmilli"`
+	UpdateTime              time.Time           `json:"uTime,format:unixmilli"`
 }
 
 // AlgoLinkedOrd is the order linked to an algo order (OCO/conditional).

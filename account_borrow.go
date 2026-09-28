@@ -97,7 +97,7 @@ type InterestAccrued struct {
 	Interest     decimal.Decimal `json:"interest"`
 	InterestRate decimal.Decimal `json:"interestRate"`
 	Liability    decimal.Decimal `json:"liab"`
-	Timestamp    time.Time       `json:"ts"`
+	Timestamp    time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetInterestRateService -- GET /api/v5/account/interest-rate (Read)
@@ -128,7 +128,7 @@ type InterestRate struct {
 	Currency          string          `json:"ccy"`
 	InterestRate      decimal.Decimal `json:"interestRate"`
 	NextEstimatedRate decimal.Decimal `json:"nextEstRate"`
-	Timestamp         time.Time       `json:"ts"`
+	Timestamp         time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetInterestLimitsService -- GET /api/v5/account/interest-limits (Read)
@@ -166,8 +166,8 @@ func (s *GetInterestLimitsService) Do(ctx context.Context) (*InterestLimits, err
 type InterestLimits struct {
 	Debt             decimal.Decimal        `json:"debt"`
 	Interest         decimal.Decimal        `json:"interest"`
-	NextDiscountTime time.Time              `json:"nextDiscountTime"`
-	NextInterestTime time.Time              `json:"nextInterestTime"`
+	NextDiscountTime time.Time              `json:"nextDiscountTime,format:unixmilli"`
+	NextInterestTime time.Time              `json:"nextInterestTime,format:unixmilli"`
 	LoanAlloc        decimal.Decimal        `json:"loanAlloc"`
 	Records          []InterestLimitsRecord `json:"records"`
 }
@@ -253,7 +253,7 @@ type SpotBorrowRepayHistory struct {
 	Type                string          `json:"type"`
 	Amount              decimal.Decimal `json:"amt"`
 	AccumulatedBorrowed decimal.Decimal `json:"accBorrowed"`
-	Timestamp           time.Time       `json:"ts"`
+	Timestamp           time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetBorrowRepayHistoryService -- GET /api/v5/account/borrow-repay-history (Read)
@@ -303,7 +303,7 @@ type BorrowRepayHistory struct {
 	Type                BorrowRepayType `json:"type"`
 	Amount              decimal.Decimal `json:"amt"`
 	AccumulatedBorrowed decimal.Decimal `json:"accBorrowed"`
-	Timestamp           time.Time       `json:"ts"`
+	Timestamp           time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetVipLoanOrderListService -- GET /api/v5/account/vip-loan-order-list (Read)
@@ -370,7 +370,7 @@ type VipLoanOrder struct {
 	DueAmount    decimal.Decimal `json:"dueAmt"`
 	RepayAmount  decimal.Decimal `json:"repayAmt"`
 	Interest     decimal.Decimal `json:"interest"`
-	Timestamp    time.Time       `json:"ts"`
+	Timestamp    time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetVipLoanOrderDetailService -- GET /api/v5/account/vip-loan-order-detail (Read)
@@ -422,7 +422,7 @@ type VipLoanOrderDetail struct {
 	DueAmount        decimal.Decimal           `json:"dueAmt"`
 	TotalRepayAmount decimal.Decimal           `json:"totalRepayAmt"`
 	TotalInterest    decimal.Decimal           `json:"totalInterest"`
-	Timestamp        time.Time                 `json:"ts"`
+	Timestamp        time.Time                 `json:"ts,format:unixmilli"`
 	BorrowAmount     decimal.Decimal           `json:"borrowAmt"`
 	RepayAmount      decimal.Decimal           `json:"repayAmt"`
 	List             []VipLoanOrderDetailEvent `json:"list"`
@@ -434,7 +434,7 @@ type VipLoanOrderDetailEvent struct {
 	Type      BorrowRepayType `json:"type"`
 	Amount    decimal.Decimal `json:"amt"`
 	Currency  string          `json:"ccy"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetVipInterestAccruedService -- GET /api/v5/account/vip-interest-accrued (Read)
@@ -491,7 +491,7 @@ type VipInterestAccrued struct {
 	Interest     decimal.Decimal `json:"interest"`
 	InterestRate decimal.Decimal `json:"interestRate"`
 	Liability    decimal.Decimal `json:"liab"`
-	Timestamp    time.Time       `json:"ts"`
+	Timestamp    time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetVipInterestDeductedService -- GET /api/v5/account/vip-interest-deducted (Read)
@@ -548,7 +548,7 @@ type VipInterestDeducted struct {
 	Interest     decimal.Decimal `json:"interest"`
 	InterestRate decimal.Decimal `json:"interestRate"`
 	Liability    decimal.Decimal `json:"liab"`
-	Timestamp    time.Time       `json:"ts"`
+	Timestamp    time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SetSpotManualBorrowRepayService -- POST /api/v5/account/spot-manual-borrow-repay (Trade)

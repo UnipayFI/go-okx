@@ -128,7 +128,7 @@ type ConvertEstimateQuote struct {
 	BaseSize             decimal.Decimal `json:"baseSz"`
 	QuoteSize            decimal.Decimal `json:"quoteSz"`
 	TTLMilliseconds      decimal.Decimal `json:"ttlMs"`
-	QuoteTime            time.Time       `json:"quoteTime"`
+	QuoteTime            time.Time       `json:"quoteTime,format:unixmilli"`
 }
 
 // ConvertTradeService -- POST /api/v5/asset/convert/trade (Trade)
@@ -186,7 +186,7 @@ type ConvertTrade struct {
 	FillPrice            decimal.Decimal `json:"fillPx"`
 	FillBaseSize         decimal.Decimal `json:"fillBaseSz"`
 	FillQuoteSize        decimal.Decimal `json:"fillQuoteSz"`
-	Timestamp            time.Time       `json:"ts"`
+	Timestamp            time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetConvertHistoryService -- GET /api/v5/asset/convert/history (Read)
@@ -241,5 +241,5 @@ type ConvertHistory struct {
 	FillQuoteSize decimal.Decimal `json:"fillQuoteSz"`
 	State         convertState    `json:"state"`
 	TradeID       string          `json:"tradeId"`
-	Timestamp     time.Time       `json:"ts"`
+	Timestamp     time.Time       `json:"ts,format:unixmilli"`
 }

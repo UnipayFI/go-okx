@@ -125,7 +125,7 @@ func (s *GetTakerVolumeService) Do(ctx context.Context) ([]RubikTakerVolume, err
 
 // RubikTakerVolume is one taker-volume bar: [ts, sellVol, buyVol].
 type RubikTakerVolume struct {
-	Timestamp  time.Time       `json:"ts"`
+	Timestamp  time.Time       `json:"ts,format:unixmilli"`
 	SellVolume decimal.Decimal `json:"sellVol"`
 	BuyVolume  decimal.Decimal `json:"buyVol"`
 }
@@ -312,7 +312,7 @@ func (s *GetLongShortPositionRatioContractTopTraderService) Do(ctx context.Conte
 // RubikRatio is one [ts, ratio] bar shared by the loan-ratio and the
 // long/short account/position ratio endpoints.
 type RubikRatio struct {
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 	Ratio     decimal.Decimal `json:"ratio"`
 }
 
@@ -389,7 +389,7 @@ func (s *GetOpenInterestHistoryService) Do(ctx context.Context) ([]RubikOpenInte
 // RubikOpenInterestHistory is one open-interest-history bar:
 // [ts, oi (contracts), oiCcy (base ccy), oiUsd].
 type RubikOpenInterestHistory struct {
-	Timestamp            time.Time       `json:"ts"`
+	Timestamp            time.Time       `json:"ts,format:unixmilli"`
 	OpenInterest         decimal.Decimal `json:"oi"`
 	OpenInterestCurrency decimal.Decimal `json:"oiCcy"`
 	OpenInterestUSD      decimal.Decimal `json:"oiUsd"`
@@ -471,7 +471,7 @@ func (s *GetOptionOpenInterestVolumeService) Do(ctx context.Context) ([]RubikOpe
 // RubikOpenInterestVolume is one [ts, oi, vol] bar shared by the contract and
 // option open-interest-volume endpoints.
 type RubikOpenInterestVolume struct {
-	Timestamp    time.Time       `json:"ts"`
+	Timestamp    time.Time       `json:"ts,format:unixmilli"`
 	OpenInterest decimal.Decimal `json:"oi"`
 	Volume       decimal.Decimal `json:"vol"`
 }
@@ -538,7 +538,7 @@ func (s *GetOptionOpenInterestVolumeExpiryService) Do(ctx context.Context) ([]Ru
 // [ts, expTime, callOI, putOI, callVol, putVol]. ExpTime is the expiry date in
 // YYYYMMDD form.
 type RubikOpenInterestVolumeExpiry struct {
-	Timestamp        time.Time       `json:"ts"`
+	Timestamp        time.Time       `json:"ts,format:unixmilli"`
 	ExpiryTime       string          `json:"expTime"`
 	CallOpenInterest decimal.Decimal `json:"callOI"`
 	PutOpenInterest  decimal.Decimal `json:"putOI"`
@@ -606,7 +606,7 @@ func (s *GetOptionOpenInterestVolumeStrikeService) Do(ctx context.Context) ([]Ru
 // RubikOpenInterestVolumeStrike is one option-by-strike bar:
 // [ts, strike, callOI, putOI, callVol, putVol].
 type RubikOpenInterestVolumeStrike struct {
-	Timestamp        time.Time       `json:"ts"`
+	Timestamp        time.Time       `json:"ts,format:unixmilli"`
 	Strike           decimal.Decimal `json:"strike"`
 	CallOpenInterest decimal.Decimal `json:"callOI"`
 	PutOpenInterest  decimal.Decimal `json:"putOI"`
@@ -672,7 +672,7 @@ func (s *GetOptionTakerBlockVolumeService) Do(ctx context.Context) (*RubikOption
 // RubikOptionTakerBlockVolume is the option taker/block-volume snapshot:
 // [ts, callBuyVol, callSellVol, putBuyVol, putSellVol, callBlockVol, putBlockVol].
 type RubikOptionTakerBlockVolume struct {
-	Timestamp       time.Time       `json:"ts"`
+	Timestamp       time.Time       `json:"ts,format:unixmilli"`
 	CallBuyVolume   decimal.Decimal `json:"callBuyVol"`
 	CallSellVolume  decimal.Decimal `json:"callSellVol"`
 	PutBuyVolume    decimal.Decimal `json:"putBuyVol"`

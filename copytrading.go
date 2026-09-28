@@ -102,7 +102,7 @@ type CopySubPosition struct {
 	Leverage               decimal.Decimal `json:"lever"`
 	OpenOrderID            string          `json:"openOrdId"`
 	OpenAveragePrice       decimal.Decimal `json:"openAvgPx"`
-	OpenTime               time.Time       `json:"openTime"`
+	OpenTime               time.Time       `json:"openTime,format:unixmilli"`
 	SubPosition            decimal.Decimal `json:"subPos"`
 	Currency               string          `json:"ccy"`
 	MarkPrice              decimal.Decimal `json:"markPx"`
@@ -173,9 +173,9 @@ type CopySubPositionHistory struct {
 	MarginMode        MgnMode         `json:"mgnMode"`
 	Leverage          decimal.Decimal `json:"lever"`
 	OpenAveragePrice  decimal.Decimal `json:"openAvgPx"`
-	OpenTime          time.Time       `json:"openTime"`
+	OpenTime          time.Time       `json:"openTime,format:unixmilli"`
 	CloseAveragePrice decimal.Decimal `json:"closeAvgPx"`
-	CloseTime         time.Time       `json:"closeTime"`
+	CloseTime         time.Time       `json:"closeTime,format:unixmilli"`
 	SubPosition       decimal.Decimal `json:"subPos"`
 	Currency          string          `json:"ccy"`
 	Pnl               decimal.Decimal `json:"pnl"`
@@ -265,7 +265,7 @@ type CopyProfitSharingDetail struct {
 	NickName            string          `json:"nickName"`
 	ProfitSharingAmount decimal.Decimal `json:"profitSharingAmt"`
 	ProfitSharingID     string          `json:"profitSharingId"`
-	Timestamp           time.Time       `json:"ts"`
+	Timestamp           time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetCopyTotalProfitSharingService -- GET /api/v5/copytrading/total-profit-sharing (Read)
@@ -544,7 +544,7 @@ type CopyLeadTrader struct {
 // CopyLeadTraderPnlRatio is a single dated pnl-ratio point in a lead trader's
 // history curve.
 type CopyLeadTraderPnlRatio struct {
-	BeginTimestamp time.Time       `json:"beginTs"`
+	BeginTimestamp time.Time       `json:"beginTs,format:unixmilli"`
 	PnlRatio       decimal.Decimal `json:"pnlRatio"`
 }
 
@@ -752,7 +752,7 @@ type CopyTradersPage struct {
 type CopyTrader struct {
 	NickName      string          `json:"nickName"`
 	PortLink      string          `json:"portLink"`
-	BeginCopyTime time.Time       `json:"beginCopyTime"`
+	BeginCopyTime time.Time       `json:"beginCopyTime,format:unixmilli"`
 	Pnl           decimal.Decimal `json:"pnl"`
 }
 

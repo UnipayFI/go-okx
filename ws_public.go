@@ -35,7 +35,7 @@ type WsTicker struct {
 	Volume24h         decimal.Decimal `json:"vol24h"`
 	StartOfDayUTC0    decimal.Decimal `json:"sodUtc0"`
 	StartOfDayUTC8    decimal.Decimal `json:"sodUtc8"`
-	Timestamp         time.Time       `json:"ts"`
+	Timestamp         time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribeTickersService -- "tickers" channel (public; no login).
@@ -65,7 +65,7 @@ type WsTrade struct {
 	// Trade.Source).
 	Source     string    `json:"source"`
 	SequenceID int64     `json:"seqId"`
-	Timestamp  time.Time `json:"ts"`
+	Timestamp  time.Time `json:"ts,format:unixmilli"`
 }
 
 // SubscribeTradesService -- "trades" channel (public; no login).
@@ -93,7 +93,7 @@ type WsOrderBook struct {
 	Asks               [][]string `json:"asks"`
 	Bids               [][]string `json:"bids"`
 	InstrumentID       string     `json:"instId,omitempty"`
-	Timestamp          time.Time  `json:"ts"`
+	Timestamp          time.Time  `json:"ts,format:unixmilli"`
 	Checksum           int64      `json:"checksum,omitempty"`
 	PreviousSequenceID int64      `json:"prevSeqId,omitempty"`
 	SequenceID         int64      `json:"seqId"`
@@ -222,11 +222,11 @@ type WsInstrument struct {
 	ContractValueCurrency     string          `json:"ctValCcy"`
 	OptionType                OptType         `json:"optType"`
 	Strike                    decimal.Decimal `json:"stk"`
-	ListTime                  time.Time       `json:"listTime"`
-	AuctionEndTime            time.Time       `json:"auctionEndTime"`
-	ContinuousTradeSwitchTime time.Time       `json:"contTdSwTime"`
+	ListTime                  time.Time       `json:"listTime,format:unixmilli"`
+	AuctionEndTime            time.Time       `json:"auctionEndTime,format:unixmilli"`
+	ContinuousTradeSwitchTime time.Time       `json:"contTdSwTime,format:unixmilli"`
 	OpenType                  string          `json:"openType"`
-	ExpiryTime                time.Time       `json:"expTime"`
+	ExpiryTime                time.Time       `json:"expTime,format:unixmilli"`
 	Leverage                  decimal.Decimal `json:"lever"`
 	TickSize                  decimal.Decimal `json:"tickSz"`
 	LotSize                   decimal.Decimal `json:"lotSz"`
@@ -256,7 +256,7 @@ type WsInstrument struct {
 	PositionLimitPercent             decimal.Decimal `json:"posLmtPct"`
 	// PreMarketSwitchTime is the time a pre-market instrument switched to normal
 	// trading. Applicable to pre-market SWAP and pre-market X-Perp FUTURES.
-	PreMarketSwitchTime time.Time `json:"preMktSwTime"`
+	PreMarketSwitchTime time.Time `json:"preMktSwTime,format:unixmilli"`
 	// Elp is the ELP (Enhanced Liquidity Program) maker permission (values
 	// "0"/"1"/"2"; see Instrument.Elp). OKX is rebranding ELP to RPI (Retail
 	// Price Improvement); the json key stays "elp" until the old names retire on
@@ -293,7 +293,7 @@ type WsOpenInterest struct {
 	OpenInterest         decimal.Decimal `json:"oi"`
 	OpenInterestCurrency decimal.Decimal `json:"oiCcy"`
 	OpenInterestUSD      decimal.Decimal `json:"oiUsd"`
-	Timestamp            time.Time       `json:"ts"`
+	Timestamp            time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribeOpenInterestService -- "open-interest" channel (public; no login).
@@ -320,8 +320,8 @@ type WsFundingRate struct {
 	FormulaType           string          `json:"formulaType"`
 	FundingRate           decimal.Decimal `json:"fundingRate"`
 	NextFundingRate       decimal.Decimal `json:"nextFundingRate"`
-	FundingTime           time.Time       `json:"fundingTime"`
-	NextFundingTime       time.Time       `json:"nextFundingTime"`
+	FundingTime           time.Time       `json:"fundingTime,format:unixmilli"`
+	NextFundingTime       time.Time       `json:"nextFundingTime,format:unixmilli"`
 	MinFundingRate        decimal.Decimal `json:"minFundingRate"`
 	MaxFundingRate        decimal.Decimal `json:"maxFundingRate"`
 	InterestRate          decimal.Decimal `json:"interestRate"`
@@ -329,8 +329,8 @@ type WsFundingRate struct {
 	SettlementState       string          `json:"settState"`
 	SettlementFundingRate decimal.Decimal `json:"settFundingRate"`
 	Premium               decimal.Decimal `json:"premium"`
-	PreviousFundingTime   time.Time       `json:"prevFundingTime"`
-	Timestamp             time.Time       `json:"ts"`
+	PreviousFundingTime   time.Time       `json:"prevFundingTime,format:unixmilli"`
+	Timestamp             time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribeFundingRateService -- "funding-rate" channel (public; no login).
@@ -356,7 +356,7 @@ type WsPriceLimit struct {
 	BuyLimit       decimal.Decimal `json:"buyLmt"`
 	SellLimit      decimal.Decimal `json:"sellLmt"`
 	Enabled        bool            `json:"enabled"`
-	Timestamp      time.Time       `json:"ts"`
+	Timestamp      time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribePriceLimitService -- "price-limit" channel (public; no login).
@@ -379,7 +379,7 @@ type WsMarkPrice struct {
 	InstrumentType InstType        `json:"instType"`
 	InstrumentID   string          `json:"instId"`
 	MarkPrice      decimal.Decimal `json:"markPx"`
-	Timestamp      time.Time       `json:"ts"`
+	Timestamp      time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribeMarkPriceService -- "mark-price" channel (public; no login).
@@ -407,7 +407,7 @@ type WsIndexTicker struct {
 	Low24h         decimal.Decimal `json:"low24h"`
 	StartOfDayUTC0 decimal.Decimal `json:"sodUtc0"`
 	StartOfDayUTC8 decimal.Decimal `json:"sodUtc8"`
-	Timestamp      time.Time       `json:"ts"`
+	Timestamp      time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribeIndexTickersService -- "index-tickers" channel (public; no login).
@@ -429,16 +429,16 @@ func (s *SubscribeIndexTickersService) Do(ctx context.Context, cb WsHandler[WsIn
 type WsStatus struct {
 	Title               string    `json:"title"`
 	State               string    `json:"state"`
-	Begin               time.Time `json:"begin"`
-	End                 time.Time `json:"end"`
-	PreOpenBegin        time.Time `json:"preOpenBegin"`
+	Begin               time.Time `json:"begin,format:unixmilli"`
+	End                 time.Time `json:"end,format:unixmilli"`
+	PreOpenBegin        time.Time `json:"preOpenBegin,format:unixmilli"`
 	Href                string    `json:"href"`
 	ServiceType         string    `json:"serviceType"`
 	System              string    `json:"system"`
 	ScheduleDescription string    `json:"scheDesc"`
 	MaintenanceType     string    `json:"maintType"`
 	Env                 string    `json:"env"`
-	Timestamp           time.Time `json:"ts"`
+	Timestamp           time.Time `json:"ts,format:unixmilli"`
 }
 
 // SubscribeStatusService -- "status" channel (public; no login). System
@@ -474,7 +474,7 @@ type WsLiquidationOrderDetail struct {
 	Size            decimal.Decimal `json:"sz"`
 	BankruptcyLoss  decimal.Decimal `json:"bkLoss"`
 	Currency        string          `json:"ccy"`
-	Timestamp       time.Time       `json:"ts"`
+	Timestamp       time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SubscribeLiquidationOrdersService -- "liquidation-orders" channel (public; no

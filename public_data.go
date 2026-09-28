@@ -89,11 +89,11 @@ type Instrument struct {
 	ContractValueCurrency     string          `json:"ctValCcy"`
 	OptionType                OptType         `json:"optType"`
 	Strike                    decimal.Decimal `json:"stk"`
-	ListTime                  time.Time       `json:"listTime"`
-	AuctionEndTime            time.Time       `json:"auctionEndTime"`
-	ContinuousTradeSwitchTime time.Time       `json:"contTdSwTime"`
+	ListTime                  time.Time       `json:"listTime,format:unixmilli"`
+	AuctionEndTime            time.Time       `json:"auctionEndTime,format:unixmilli"`
+	ContinuousTradeSwitchTime time.Time       `json:"contTdSwTime,format:unixmilli"`
 	OpenType                  publicOpenType  `json:"openType"`
-	ExpiryTime                time.Time       `json:"expTime"`
+	ExpiryTime                time.Time       `json:"expTime,format:unixmilli"`
 	Leverage                  decimal.Decimal `json:"lever"`
 	TickSize                  decimal.Decimal `json:"tickSz"`
 	LotSize                   decimal.Decimal `json:"lotSz"`
@@ -134,7 +134,7 @@ type Instrument struct {
 	// PreMarketSwitchTime is the time a pre-market instrument switched to normal
 	// trading. Only applicable to pre-market SWAP and pre-market X-Perp FUTURES;
 	// populated when a pre-market X-Perp converts to a normal X-Perp.
-	PreMarketSwitchTime time.Time `json:"preMktSwTime"`
+	PreMarketSwitchTime time.Time `json:"preMktSwTime,format:unixmilli"`
 	// InitialPriceLimitPercent is the initial price-limit band applied during the
 	// first 10 minutes after contract listing. Empty for OPTION and EVENTS.
 	InitialPriceLimitPercent decimal.Decimal `json:"initPxLmtPct"`
@@ -171,7 +171,7 @@ type Instrument struct {
 // InstrumentUpcChg is a scheduled upcoming change to one of an instrument's
 // trading rules (e.g. a tickSz adjustment).
 type InstrumentUpcChg struct {
-	EffectiveTime time.Time `json:"effTime"`
+	EffectiveTime time.Time `json:"effTime,format:unixmilli"`
 	NewValue      string    `json:"newValue"`
 	Param         string    `json:"param"`
 }
@@ -199,7 +199,7 @@ type EstimatedPrice struct {
 	InstrumentType InstType        `json:"instType"`
 	InstrumentID   string          `json:"instId"`
 	SettlePrice    decimal.Decimal `json:"settlePx"`
-	Timestamp      time.Time       `json:"ts"`
+	Timestamp      time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetDeliveryExerciseHistoryService -- GET /api/v5/public/delivery-exercise-history (public)
@@ -253,7 +253,7 @@ func (s *GetDeliveryExerciseHistoryService) Do(ctx context.Context) ([]DeliveryE
 // DeliveryExerciseHistory is one delivery/exercise event and its per-instrument
 // details.
 type DeliveryExerciseHistory struct {
-	Timestamp time.Time                       `json:"ts"`
+	Timestamp time.Time                       `json:"ts,format:unixmilli"`
 	Details   []DeliveryExerciseHistoryDetail `json:"details"`
 }
 
@@ -305,7 +305,7 @@ func (s *GetSettlementHistoryService) Do(ctx context.Context) ([]SettlementHisto
 
 // SettlementHistory is one settlement event and its per-instrument prices.
 type SettlementHistory struct {
-	Timestamp time.Time                 `json:"ts"`
+	Timestamp time.Time                 `json:"ts,format:unixmilli"`
 	Details   []SettlementHistoryDetail `json:"details"`
 }
 
@@ -340,8 +340,8 @@ type FundingRate struct {
 	FormulaType           string          `json:"formulaType"`
 	FundingRate           decimal.Decimal `json:"fundingRate"`
 	NextFundingRate       decimal.Decimal `json:"nextFundingRate"`
-	FundingTime           time.Time       `json:"fundingTime"`
-	NextFundingTime       time.Time       `json:"nextFundingTime"`
+	FundingTime           time.Time       `json:"fundingTime,format:unixmilli"`
+	NextFundingTime       time.Time       `json:"nextFundingTime,format:unixmilli"`
 	MinFundingRate        decimal.Decimal `json:"minFundingRate"`
 	MaxFundingRate        decimal.Decimal `json:"maxFundingRate"`
 	InterestRate          decimal.Decimal `json:"interestRate"`
@@ -349,8 +349,8 @@ type FundingRate struct {
 	SettlementState       publicSettState `json:"settState"`
 	SettlementFundingRate decimal.Decimal `json:"settFundingRate"`
 	Premium               decimal.Decimal `json:"premium"`
-	PreviousFundingTime   time.Time       `json:"prevFundingTime"`
-	Timestamp             time.Time       `json:"ts"`
+	PreviousFundingTime   time.Time       `json:"prevFundingTime,format:unixmilli"`
+	Timestamp             time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetFundingRateHistoryService -- GET /api/v5/public/funding-rate-history (public)
@@ -396,7 +396,7 @@ type FundingRateHistory struct {
 	FormulaType    string          `json:"formulaType"`
 	FundingRate    decimal.Decimal `json:"fundingRate"`
 	RealizedRate   decimal.Decimal `json:"realizedRate"`
-	FundingTime    time.Time       `json:"fundingTime"`
+	FundingTime    time.Time       `json:"fundingTime,format:unixmilli"`
 }
 
 // GetOpenInterestService -- GET /api/v5/public/open-interest (public)
@@ -441,7 +441,7 @@ type OpenInterest struct {
 	OpenInterest         decimal.Decimal `json:"oi"`
 	OpenInterestCurrency decimal.Decimal `json:"oiCcy"`
 	OpenInterestUSD      decimal.Decimal `json:"oiUsd"`
-	Timestamp            time.Time       `json:"ts"`
+	Timestamp            time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetPriceLimitService -- GET /api/v5/public/price-limit (public)
@@ -468,7 +468,7 @@ type PriceLimit struct {
 	BuyLimit       decimal.Decimal `json:"buyLmt"`
 	SellLimit      decimal.Decimal `json:"sellLmt"`
 	Enabled        bool            `json:"enabled"`
-	Timestamp      time.Time       `json:"ts"`
+	Timestamp      time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetOptSummaryService -- GET /api/v5/public/opt-summary (public)
@@ -530,7 +530,7 @@ type OptSummary struct {
 	Distance           decimal.Decimal `json:"distance"`
 	BuyAPR             decimal.Decimal `json:"buyApr"`
 	SellAPR            decimal.Decimal `json:"sellApr"`
-	Timestamp          time.Time       `json:"ts"`
+	Timestamp          time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetDiscountRateInterestFreeQuotaService -- GET /api/v5/public/discount-rate-interest-free-quota (public)
@@ -574,7 +574,7 @@ type DiscountRateInterestFreeQuota struct {
 	Details            []DiscountRateTier `json:"details"`
 	// EffectiveTime is when an upcoming discount-rate schedule takes effect. The
 	// live API returns it empty (zero time) while no change is pending.
-	EffectiveTime time.Time `json:"effTime"`
+	EffectiveTime time.Time `json:"effTime,format:unixmilli"`
 }
 
 // DiscountRateTier is one tier of a currency's discount-rate schedule.
@@ -627,7 +627,7 @@ type MarkPrice struct {
 	InstrumentType InstType        `json:"instType"`
 	InstrumentID   string          `json:"instId"`
 	MarkPrice      decimal.Decimal `json:"markPx"`
-	Timestamp      time.Time       `json:"ts"`
+	Timestamp      time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetPositionTiersService -- GET /api/v5/public/position-tiers (public)
@@ -845,10 +845,10 @@ type InsuranceFundDetail struct {
 	Amount              decimal.Decimal `json:"amt"`
 	Balance             decimal.Decimal `json:"balance"`
 	MaxBalance          decimal.Decimal `json:"maxBal"`
-	MaxBalanceTimestamp time.Time       `json:"maxBalTs"`
+	MaxBalanceTimestamp time.Time       `json:"maxBalTs,format:unixmilli"`
 	DecRate             decimal.Decimal `json:"decRate"`
 	ADLType             string          `json:"adlType"`
-	Timestamp           time.Time       `json:"ts"`
+	Timestamp           time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetConvertContractCoinService -- GET /api/v5/public/convert-contract-coin (public)
@@ -975,7 +975,7 @@ func (s *GetPremiumHistoryService) Do(ctx context.Context) ([]PremiumHistory, er
 type PremiumHistory struct {
 	InstrumentID string          `json:"instId"`
 	Premium      decimal.Decimal `json:"premium"`
-	Timestamp    time.Time       `json:"ts"`
+	Timestamp    time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetMMInstrumentTypesService -- GET /api/v5/public/mm-instrument-types (public)
@@ -1104,7 +1104,7 @@ type MarketDataHistory struct {
 	DateAggrType MarketDataAggrType        `json:"dateAggrType"`
 	TotalSizeMB  decimal.Decimal           `json:"totalSizeMB"`
 	Details      []MarketDataHistoryDetail `json:"details"`
-	Timestamp    time.Time                 `json:"ts"`
+	Timestamp    time.Time                 `json:"ts,format:unixmilli"`
 }
 
 // MarketDataHistoryDetail is one instrument's (or family's) archive group within
@@ -1114,8 +1114,8 @@ type MarketDataHistoryDetail struct {
 	InstrumentID     string                  `json:"instId"`
 	InstrumentFamily string                  `json:"instFamily"`
 	Currency         string                  `json:"ccy"`
-	DateRangeStart   time.Time               `json:"dateRangeStart"`
-	DateRangeEnd     time.Time               `json:"dateRangeEnd"`
+	DateRangeStart   time.Time               `json:"dateRangeStart,format:unixmilli"`
+	DateRangeEnd     time.Time               `json:"dateRangeEnd,format:unixmilli"`
 	GroupSizeMB      decimal.Decimal         `json:"groupSizeMB"`
 	GroupDetails     []MarketDataHistoryFile `json:"groupDetails"`
 }
@@ -1123,7 +1123,7 @@ type MarketDataHistoryDetail struct {
 // MarketDataHistoryFile is a single downloadable archive file.
 type MarketDataHistoryFile struct {
 	Filename      string          `json:"filename"`
-	DateTimestamp time.Time       `json:"dateTs"`
+	DateTimestamp time.Time       `json:"dateTs,format:unixmilli"`
 	SizeMB        decimal.Decimal `json:"sizeMB"`
 	URL           string          `json:"url"`
 }

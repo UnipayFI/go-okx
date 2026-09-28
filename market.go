@@ -72,7 +72,7 @@ type Ticker struct {
 	Volume24h         decimal.Decimal `json:"vol24h"`
 	StartOfDayUTC0    decimal.Decimal `json:"sodUtc0"`
 	StartOfDayUTC8    decimal.Decimal `json:"sodUtc8"`
-	Timestamp         time.Time       `json:"ts"`
+	Timestamp         time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetBooksService -- GET /api/v5/market/books (public)
@@ -104,7 +104,7 @@ func (s *GetBooksService) Do(ctx context.Context) (*OrderBook, error) {
 type OrderBook struct {
 	Asks       [][]string `json:"asks"`
 	Bids       [][]string `json:"bids"`
-	Timestamp  time.Time  `json:"ts"`
+	Timestamp  time.Time  `json:"ts,format:unixmilli"`
 	SequenceID int64      `json:"seqId"`
 }
 
@@ -139,7 +139,7 @@ func (s *GetBooksFullService) Do(ctx context.Context) (*OrderBook, error) {
 type RpiOrderBook struct {
 	Asks       [][]string `json:"asks"`
 	Bids       [][]string `json:"bids"`
-	Timestamp  time.Time  `json:"ts"`
+	Timestamp  time.Time  `json:"ts,format:unixmilli"`
 	SequenceID int64      `json:"seqId"`
 }
 
@@ -212,7 +212,7 @@ const (
 // response is an array-of-arrays with 9 columns:
 // [ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm].
 type Candle struct {
-	Timestamp           time.Time
+	Timestamp           time.Time `json:",format:unixmilli"`
 	Open                decimal.Decimal
 	High                decimal.Decimal
 	Low                 decimal.Decimal
@@ -387,7 +387,7 @@ type Trade struct {
 	// previously documented as ELP order; the returned value itself is
 	// unchanged by the ELP->RPI rebranding.
 	Source    string    `json:"source"`
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"ts,format:unixmilli"`
 }
 
 // MarketHistoryTradeType selects the paging field for history-trades:
@@ -472,7 +472,7 @@ type OptionFamilyInfo struct {
 	Price        decimal.Decimal `json:"px"`
 	Size         decimal.Decimal `json:"sz"`
 	Side         Side            `json:"side"`
-	Timestamp    time.Time       `json:"ts"`
+	Timestamp    time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetPlatform24VolumeService -- GET /api/v5/market/platform-24-volume (public)
@@ -495,7 +495,7 @@ func (s *GetPlatform24VolumeService) Do(ctx context.Context) (*Platform24Volume,
 type Platform24Volume struct {
 	VolumeUSD decimal.Decimal `json:"volUsd"`
 	VolumeCNY decimal.Decimal `json:"volCny"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetBlockTickersService -- GET /api/v5/market/block-tickers (public)
@@ -533,5 +533,5 @@ type BlockTicker struct {
 	InstrumentID      string          `json:"instId"`
 	VolumeCurrency24h decimal.Decimal `json:"volCcy24h"`
 	Volume24h         decimal.Decimal `json:"vol24h"`
-	Timestamp         time.Time       `json:"ts"`
+	Timestamp         time.Time       `json:"ts,format:unixmilli"`
 }

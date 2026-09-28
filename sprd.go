@@ -101,10 +101,10 @@ type SprdSpread struct {
 	TickSize      decimal.Decimal `json:"tickSz"`
 	MinSize       decimal.Decimal `json:"minSz"`
 	LotSize       decimal.Decimal `json:"lotSz"`
-	ListTime      time.Time       `json:"listTime"`
+	ListTime      time.Time       `json:"listTime,format:unixmilli"`
 	Legs          []SprdLeg       `json:"legs"`
-	ExpiryTime    time.Time       `json:"expTime"`
-	UpdateTime    time.Time       `json:"uTime"`
+	ExpiryTime    time.Time       `json:"expTime,format:unixmilli"`
+	UpdateTime    time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // SprdLeg is one leg of a spread.
@@ -141,7 +141,7 @@ func (s *GetSprdBooksService) Do(ctx context.Context) (*SprdOrderBook, error) {
 type SprdOrderBook struct {
 	Asks      [][]string `json:"asks"`
 	Bids      [][]string `json:"bids"`
-	Timestamp time.Time  `json:"ts"`
+	Timestamp time.Time  `json:"ts,format:unixmilli"`
 }
 
 // GetSprdTickerService -- GET /api/v5/sprd/ticker (public)
@@ -170,7 +170,7 @@ type SprdTicker struct {
 	AskSize   decimal.Decimal `json:"askSz"`
 	BidPrice  decimal.Decimal `json:"bidPx"`
 	BidSize   decimal.Decimal `json:"bidSz"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetSprdPublicTradesService -- GET /api/v5/sprd/public-trades (public)
@@ -203,13 +203,13 @@ type SprdPublicTrade struct {
 	Price     decimal.Decimal `json:"px"`
 	Size      decimal.Decimal `json:"sz"`
 	Side      Side            `json:"side"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SprdCandle is one OHLCV candlestick for a spread. The raw response is an
 // array-of-arrays with 7 columns: [ts, o, h, l, c, vol, confirm].
 type SprdCandle struct {
-	Timestamp time.Time
+	Timestamp time.Time `json:",format:unixmilli"`
 	Open      decimal.Decimal
 	High      decimal.Decimal
 	Low       decimal.Decimal
@@ -394,8 +394,8 @@ type SprdOrder struct {
 	State               SprdOrdState    `json:"state"`
 	AveragePrice        decimal.Decimal `json:"avgPx"`
 	CancelSource        string          `json:"cancelSource"`
-	UpdateTime          time.Time       `json:"uTime"`
-	CreationTime        time.Time       `json:"cTime"`
+	UpdateTime          time.Time       `json:"uTime,format:unixmilli"`
+	CreationTime        time.Time       `json:"cTime,format:unixmilli"`
 }
 
 // GetSprdOrdersPendingService -- GET /api/v5/sprd/orders-pending (Read)
@@ -658,7 +658,7 @@ type SprdTrade struct {
 	Side          Side            `json:"side"`
 	State         string          `json:"state"`
 	ExecutionType ExecType        `json:"execType"`
-	Timestamp     time.Time       `json:"ts"`
+	Timestamp     time.Time       `json:"ts,format:unixmilli"`
 	Legs          []SprdTradeLeg  `json:"legs"`
 	Code          string          `json:"code"`
 	Message       string          `json:"msg"`
@@ -725,8 +725,8 @@ type SprdAlgoOrder struct {
 	TimeInterval      string          `json:"timeInterval"`
 	State             string          `json:"state"`
 	Tag               string          `json:"tag"`
-	UpdateTime        time.Time       `json:"uTime"`
-	CreationTime      time.Time       `json:"cTime"`
+	UpdateTime        time.Time       `json:"uTime,format:unixmilli"`
+	CreationTime      time.Time       `json:"cTime,format:unixmilli"`
 }
 
 // GetSprdOrdersAlgoPendingService -- GET /api/v5/sprd/orders-algo-pending (Read)
@@ -1000,8 +1000,8 @@ func (s *CancelAllSprdOrdersService) Do(ctx context.Context) (*SprdCancelAllAck,
 
 // SprdCancelAllAck is the acknowledgement of a cancel-all spread orders request.
 type SprdCancelAllAck struct {
-	TriggerTime time.Time `json:"triggerTime"`
-	Timestamp   time.Time `json:"ts"`
+	TriggerTime time.Time `json:"triggerTime,format:unixmilli"`
+	Timestamp   time.Time `json:"ts,format:unixmilli"`
 }
 
 // SprdMassCancelOrdersService -- POST /api/v5/sprd/mass-cancel (Trade)
@@ -1056,8 +1056,8 @@ func (s *SprdCancelAllAfterService) Do(ctx context.Context) (*SprdCancelAllAfter
 
 // SprdCancelAllAfterAck is the acknowledgement of a cancel-all-after request.
 type SprdCancelAllAfterAck struct {
-	TriggerTime time.Time `json:"triggerTime"`
-	Timestamp   time.Time `json:"ts"`
+	TriggerTime time.Time `json:"triggerTime,format:unixmilli"`
+	Timestamp   time.Time `json:"ts,format:unixmilli"`
 }
 
 // PlaceSprdOrderAlgoService -- POST /api/v5/sprd/order-algo (Trade)

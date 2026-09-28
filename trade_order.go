@@ -119,7 +119,7 @@ type OrderResult struct {
 	OrderID       string    `json:"ordId"`
 	ClientOrderID string    `json:"clOrdId"`
 	Tag           string    `json:"tag"`
-	Timestamp     time.Time `json:"ts"`
+	Timestamp     time.Time `json:"ts,format:unixmilli"`
 	SCode         string    `json:"sCode"`
 	SMsg          string    `json:"sMsg"`
 }
@@ -128,7 +128,7 @@ type OrderResult struct {
 type AmendResult struct {
 	OrderID       string    `json:"ordId"`
 	ClientOrderID string    `json:"clOrdId"`
-	Timestamp     time.Time `json:"ts"`
+	Timestamp     time.Time `json:"ts,format:unixmilli"`
 	RequestID     string    `json:"reqId"`
 	SCode         string    `json:"sCode"`
 	SMsg          string    `json:"sMsg"`
@@ -935,7 +935,7 @@ type Order struct {
 	FillPrice                  decimal.Decimal `json:"fillPx"`
 	TradeID                    string          `json:"tradeId"`
 	FillSize                   decimal.Decimal `json:"fillSz"`
-	FillTime                   time.Time       `json:"fillTime"`
+	FillTime                   time.Time       `json:"fillTime,format:unixmilli"`
 	AveragePrice               decimal.Decimal `json:"avgPx"`
 	State                      OrdState        `json:"state"`
 	Leverage                   decimal.Decimal `json:"lever"`
@@ -964,8 +964,8 @@ type Order struct {
 	IsTakeProfitLimit          string          `json:"isTpLimit"`
 	Outcome                    string          `json:"outcome"`
 	LinkedAlgoOrder            OrderLinkedAlgo `json:"linkedAlgoOrd"`
-	UpdateTime                 time.Time       `json:"uTime"`
-	CreationTime               time.Time       `json:"cTime"`
+	UpdateTime                 time.Time       `json:"uTime,format:unixmilli"`
+	CreationTime               time.Time       `json:"cTime,format:unixmilli"`
 	TradeQuoteCurrency         string          `json:"tradeQuoteCcy"`
 }
 
@@ -997,7 +997,7 @@ type AccountRateLimit struct {
 	FillRatio            decimal.Decimal `json:"fillRatio"`
 	MainFillRatio        decimal.Decimal `json:"mainFillRatio"`
 	NextAccountRateLimit decimal.Decimal `json:"nextAccRateLimit"`
-	Timestamp            time.Time       `json:"ts"`
+	Timestamp            time.Time       `json:"ts,format:unixmilli"`
 }
 
 // OrderPrecheckService -- POST /api/v5/trade/order-precheck (Trade)
@@ -1137,7 +1137,7 @@ func (s *CancelAllAfterService) Do(ctx context.Context) (*CancelAllAfterResult, 
 
 // CancelAllAfterResult is the ack returned by the cancel-all-after endpoint.
 type CancelAllAfterResult struct {
-	TriggerTime time.Time `json:"triggerTime"`
+	TriggerTime time.Time `json:"triggerTime,format:unixmilli"`
 	Tag         string    `json:"tag"`
-	Timestamp   time.Time `json:"ts"`
+	Timestamp   time.Time `json:"ts,format:unixmilli"`
 }

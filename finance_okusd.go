@@ -42,7 +42,7 @@ type OKUSDLimits struct {
 	SubLimit        OKUSDSubLimit    `json:"subLimit"`
 	FastRedeemLimit OKUSDRedeemLimit `json:"fastRedeemLimit"`
 	StdRedeemLimit  OKUSDRedeemLimit `json:"stdRedeemLimit"`
-	Timestamp       time.Time        `json:"ts"`
+	Timestamp       time.Time        `json:"ts,format:unixmilli"`
 }
 
 // OKUSDSubLimit holds the subscription limit figures (USDT).
@@ -92,7 +92,7 @@ type OKUSDSubscription struct {
 	Amount      decimal.Decimal `json:"amt"`
 	OKUSDAmount decimal.Decimal `json:"okusdAmt"`
 	State       string          `json:"state"`
-	Timestamp   time.Time       `json:"ts"`
+	Timestamp   time.Time       `json:"ts,format:unixmilli"`
 }
 
 // SetOKUSDRedeemService -- POST /api/v5/finance/okusd/redeem (Trade)
@@ -126,6 +126,6 @@ type OKUSDRedemption struct {
 	USDTAmount              decimal.Decimal `json:"usdtAmt"`
 	RedeemType              OKUSDRedeemType `json:"redeemType"`
 	State                   string          `json:"state"`
-	EstimatedSettlementTime time.Time       `json:"estSettlementTime"`
-	Timestamp               time.Time       `json:"ts"`
+	EstimatedSettlementTime time.Time       `json:"estSettlementTime,format:unixmilli"`
+	Timestamp               time.Time       `json:"ts,format:unixmilli"`
 }

@@ -51,7 +51,7 @@ func (s *SubscribeAccountService) Do(ctx context.Context, cb WsHandler[WsAccount
 // details. It mirrors the REST Balance but is the WebSocket variant (it adds
 // coinUsdPrice/frpType per detail and omits some REST-only fields).
 type WsAccount struct {
-	UpdateTime            time.Time         `json:"uTime"`
+	UpdateTime            time.Time         `json:"uTime,format:unixmilli"`
 	TotalEquity           decimal.Decimal   `json:"totalEq"`
 	IsolatedEquity        decimal.Decimal   `json:"isoEq"`
 	AdjustedEquity        decimal.Decimal   `json:"adjEq"`
@@ -78,7 +78,7 @@ type WsAccountDetail struct {
 	Currency                       string          `json:"ccy"`
 	Equity                         decimal.Decimal `json:"eq"`
 	CashBalance                    decimal.Decimal `json:"cashBal"`
-	UpdateTime                     time.Time       `json:"uTime"`
+	UpdateTime                     time.Time       `json:"uTime,format:unixmilli"`
 	IsolatedEquity                 decimal.Decimal `json:"isoEq"`
 	AvailableEquity                decimal.Decimal `json:"availEq"`
 	DiscountEquity                 decimal.Decimal `json:"disEq"`
@@ -223,9 +223,9 @@ type WsPosition struct {
 	FundingFee                      decimal.Decimal          `json:"fundingFee"`
 	LiquidationPenalty              decimal.Decimal          `json:"liqPenalty"`
 	CloseOrderAlgo                  []PositionCloseOrderAlgo `json:"closeOrderAlgo"`
-	CreationTime                    time.Time                `json:"cTime"`
-	UpdateTime                      time.Time                `json:"uTime"`
-	PushTime                        time.Time                `json:"pTime"`
+	CreationTime                    time.Time                `json:"cTime,format:unixmilli"`
+	UpdateTime                      time.Time                `json:"uTime,format:unixmilli"`
+	PushTime                        time.Time                `json:"pTime,format:unixmilli"`
 	BusinessReferenceID             string                   `json:"bizRefId"`
 	BusinessReferenceType           string                   `json:"bizRefType"`
 }
@@ -251,7 +251,7 @@ func (s *SubscribeBalanceAndPositionService) Do(ctx context.Context, cb WsHandle
 // event type ("snapshot"/"delivered"/"exercised"/"transferred"/"filled"/...),
 // the changed balances, the changed positions and the triggering trades.
 type WsBalanceAndPosition struct {
-	PushTime     time.Time       `json:"pTime"`
+	PushTime     time.Time       `json:"pTime,format:unixmilli"`
 	EventType    string          `json:"eventType"`
 	BalanceData  []WsBalData     `json:"balData"`
 	PositionData []WsPosition    `json:"posData"`
@@ -262,7 +262,7 @@ type WsBalanceAndPosition struct {
 type WsBalData struct {
 	Currency    string          `json:"ccy"`
 	CashBalance decimal.Decimal `json:"cashBal"`
-	UpdateTime  time.Time       `json:"uTime"`
+	UpdateTime  time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // WsBalPosTrade is one trade that triggered a "balance_and_position" update. The
@@ -343,7 +343,7 @@ type WsOrder struct {
 	TradeID                    string          `json:"tradeId"`
 	FillSize                   decimal.Decimal `json:"fillSz"`
 	FillPnl                    decimal.Decimal `json:"fillPnl"`
-	FillTime                   time.Time       `json:"fillTime"`
+	FillTime                   time.Time       `json:"fillTime,format:unixmilli"`
 	FillFee                    decimal.Decimal `json:"fillFee"`
 	FillFeeCurrency            string          `json:"fillFeeCcy"`
 	FillPriceVolatility        decimal.Decimal `json:"fillPxVol"`
@@ -382,8 +382,8 @@ type WsOrder struct {
 	AlgoID                     string          `json:"algoId"`
 	IsTakeProfitLimit          string          `json:"isTpLimit"`
 	LastPrice                  decimal.Decimal `json:"lastPx"`
-	UpdateTime                 time.Time       `json:"uTime"`
-	CreationTime               time.Time       `json:"cTime"`
+	UpdateTime                 time.Time       `json:"uTime,format:unixmilli"`
+	CreationTime               time.Time       `json:"cTime,format:unixmilli"`
 	RequestID                  string          `json:"reqId"`
 	AmendResult                string          `json:"amendResult"`
 	// AmendSource gains value "6" with the ELP->RPI rebranding rollout: order
@@ -470,5 +470,5 @@ type WsAccountGreeks struct {
 	ThetaPA   decimal.Decimal `json:"thetaPA"`
 	VegaBS    decimal.Decimal `json:"vegaBS"`
 	VegaPA    decimal.Decimal `json:"vegaPA"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }

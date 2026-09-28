@@ -34,7 +34,7 @@ func (s *GetBalanceService) Do(ctx context.Context) (*Balance, error) {
 
 // Balance is the account-level balance summary plus per-currency details.
 type Balance struct {
-	UpdateTime            time.Time       `json:"uTime"`
+	UpdateTime            time.Time       `json:"uTime,format:unixmilli"`
 	TotalEquity           decimal.Decimal `json:"totalEq"`
 	IsolatedEquity        decimal.Decimal `json:"isoEq"`
 	AdjustedEquity        decimal.Decimal `json:"adjEq"`
@@ -61,7 +61,7 @@ type BalanceDetail struct {
 	Currency                       string          `json:"ccy"`
 	Equity                         decimal.Decimal `json:"eq"`
 	CashBalance                    decimal.Decimal `json:"cashBal"`
-	UpdateTime                     time.Time       `json:"uTime"`
+	UpdateTime                     time.Time       `json:"uTime,format:unixmilli"`
 	IsolatedEquity                 decimal.Decimal `json:"isoEq"`
 	AvailableEquity                decimal.Decimal `json:"availEq"`
 	DiscountEquity                 decimal.Decimal `json:"disEq"`
@@ -207,8 +207,8 @@ type Position struct {
 	FundingFee                      decimal.Decimal          `json:"fundingFee"`
 	LiquidationPenalty              decimal.Decimal          `json:"liqPenalty"`
 	CloseOrderAlgo                  []PositionCloseOrderAlgo `json:"closeOrderAlgo"`
-	CreationTime                    time.Time                `json:"cTime"`
-	UpdateTime                      time.Time                `json:"uTime"`
+	CreationTime                    time.Time                `json:"cTime,format:unixmilli"`
+	UpdateTime                      time.Time                `json:"uTime,format:unixmilli"`
 	BusinessReferenceID             string                   `json:"bizRefId"`
 	BusinessReferenceType           string                   `json:"bizRefType"`
 }
@@ -314,8 +314,8 @@ type PositionHistory struct {
 	LiquidationPenalty    decimal.Decimal `json:"liqPenalty"`
 	TriggerPrice          decimal.Decimal `json:"triggerPx"`
 	Underlying            string          `json:"uly"`
-	CreationTime          time.Time       `json:"cTime"`
-	UpdateTime            time.Time       `json:"uTime"`
+	CreationTime          time.Time       `json:"cTime,format:unixmilli"`
+	UpdateTime            time.Time       `json:"uTime,format:unixmilli"`
 }
 
 // GetAccountPositionRiskService -- GET /api/v5/account/account-position-risk (Read)
@@ -344,7 +344,7 @@ func (s *GetAccountPositionRiskService) Do(ctx context.Context) (*AccountPositio
 
 // AccountPositionRisk is the account/position risk snapshot.
 type AccountPositionRisk struct {
-	Timestamp      time.Time                    `json:"ts"`
+	Timestamp      time.Time                    `json:"ts,format:unixmilli"`
 	AdjustedEquity decimal.Decimal              `json:"adjEq"`
 	BalanceData    []AccountPositionRiskBalance `json:"balData"`
 	PositionData   []AccountPositionRiskPos     `json:"posData"`
@@ -652,7 +652,7 @@ type TradeFee struct {
 	RuleType       string          `json:"ruleType"`
 	FeeGroup       []TradeFeeGroup `json:"feeGroup"`
 	Fiat           []TradeFeeFiat  `json:"fiat"`
-	Timestamp      time.Time       `json:"ts"`
+	Timestamp      time.Time       `json:"ts,format:unixmilli"`
 }
 
 // TradeFeeGroup is one fee group's maker/taker rates.
@@ -743,7 +743,7 @@ type Greeks struct {
 	ThetaPA   decimal.Decimal `json:"thetaPA"`
 	VegaBS    decimal.Decimal `json:"vegaBS"`
 	VegaPA    decimal.Decimal `json:"vegaPA"`
-	Timestamp time.Time       `json:"ts"`
+	Timestamp time.Time       `json:"ts,format:unixmilli"`
 }
 
 // GetAccountPositionTiersService -- GET /api/v5/account/position-tiers (Read)
@@ -949,5 +949,5 @@ type RiskState struct {
 	AtRisk       bool      `json:"atRisk"`
 	AtRiskIndex  []string  `json:"atRiskIdx"`
 	AtRiskMargin []string  `json:"atRiskMgn"`
-	Timestamp    time.Time `json:"ts"`
+	Timestamp    time.Time `json:"ts,format:unixmilli"`
 }
