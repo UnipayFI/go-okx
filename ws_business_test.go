@@ -1,13 +1,13 @@
 package okx
 
 import (
+	"encoding/json/jsontext"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/UnipayFI/go-okx/common"
 	"github.com/UnipayFI/go-okx/request"
-	"github.com/go-json-experiment/json/jsontext"
 )
 
 // TestWsBusiness exercises every BUSINESS-gateway WebSocket channel: it

@@ -1,7 +1,7 @@
 # go-okx
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/UnipayFI/go-okx.svg)](https://pkg.go.dev/github.com/UnipayFI/go-okx)
-[![Go 1.26+](https://img.shields.io/badge/Go-1.26%2B-00ADD8?logo=go)](go.mod)
+[![Go 1.27+](https://img.shields.io/badge/Go-1.27%2B-00ADD8?logo=go)](go.mod)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 A Go SDK for the [OKX](https://www.okx.com/docs-v5/en/) v5 API.

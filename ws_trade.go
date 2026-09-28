@@ -2,6 +2,7 @@ package okx
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"errors"
 	"strconv"
 	"sync"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/UnipayFI/go-okx/common"
 	"github.com/UnipayFI/go-okx/request"
-	"github.com/go-json-experiment/json/jsontext"
 	"github.com/gorilla/websocket"
 )
 

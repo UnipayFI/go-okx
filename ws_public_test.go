@@ -2,13 +2,13 @@ package okx
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/UnipayFI/go-okx/common"
 	"github.com/UnipayFI/go-okx/request"
-	"github.com/go-json-experiment/json/jsontext"
 )
 
 // TestWsPublic verifies every public-gateway market channel: it subscribes live,

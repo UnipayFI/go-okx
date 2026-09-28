@@ -1,12 +1,12 @@
 package request
 
 import (
+	"encoding/json/jsontext"
 	"errors"
 	"fmt"
 
 	"github.com/UnipayFI/go-okx/client"
 	"github.com/UnipayFI/go-okx/common"
-	"github.com/go-json-experiment/json/jsontext"
 )
 
 // apiResponse is OKX's uniform REST envelope. "code" is "0" on success; "data"

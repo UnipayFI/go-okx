@@ -16,7 +16,7 @@ func TestAsAPIError(t *testing.T) {
 	}{
 		{"nil", nil, false, ""},
 		{"direct pointer", ptr, true, "51400"},
-		{"wrapped pointer", fmt.Errorf("place: %w", ptr), true, "51400"},
+		{"wrapped pointer", fmt.Errorf("place: %w", error(ptr)), true, "51400"},
 		// A caller may %w-wrap the value form (as the OKX adapter does); AsAPIError
 		// must still find it via its value target.
 		{"wrapped value", fmt.Errorf("place: %w", APIError{Code: "51008", Message: "insufficient"}), true, "51008"},
@@ -40,7 +40,7 @@ func TestAsAPIError(t *testing.T) {
 }
 
 func TestIsCode(t *testing.T) {
-	wrapped := fmt.Errorf("cancel: %w", &APIError{Code: "51401", Message: "already canceled"})
+	wrapped := fmt.Errorf("cancel: %w", error(&APIError{Code: "51401", Message: "already canceled"}))
 	if !IsCode(wrapped, "51401") {
 		t.Errorf("IsCode(51401) = false, want true")
 	}
