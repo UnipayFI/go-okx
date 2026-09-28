@@ -82,7 +82,7 @@ func DoObject[T any](r *Request) (*T, error) {
 		if apiErr := parseAPIError(r, body); apiErr != nil {
 			return nil, apiErr
 		}
-		return nil, fmt.Errorf("request failed (status %d): %s", response.StatusCode(), common.BytesToString(body))
+		return nil, fmt.Errorf("request failed (status %d): %s: %w", response.StatusCode(), common.BytesToString(body), uerr)
 	}
 	if out.Code != "0" {
 		return nil, &client.APIError{Code: out.Code, Message: out.Message}
@@ -138,7 +138,7 @@ func do[T any](r *Request) (*apiResponse[T], error) {
 		if apiErr := parseAPIError(r, body); apiErr != nil {
 			return nil, apiErr
 		}
-		return nil, fmt.Errorf("request failed (status %d): %s", response.StatusCode(), common.BytesToString(body))
+		return nil, fmt.Errorf("request failed (status %d): %s: %w", response.StatusCode(), common.BytesToString(body), uerr)
 	}
 	return &out, nil
 }
@@ -164,7 +164,7 @@ func DoRawData(r *Request) ([]byte, error) {
 		Data    jsontext.Value `json:"data"`
 	}
 	if uerr := r.client.GetHttpClient().JSONUnmarshal(body, &env); uerr != nil {
-		return nil, fmt.Errorf("request failed (status %d): %s", response.StatusCode(), common.BytesToString(body))
+		return nil, fmt.Errorf("request failed (status %d): %s: %w", response.StatusCode(), common.BytesToString(body), uerr)
 	}
 	switch env.Code {
 	case "0", "1", "2":
