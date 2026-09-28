@@ -383,12 +383,17 @@ func (s *GetMMPConfigService) Do(ctx context.Context) ([]MMPConfig, error) {
 
 // MMPConfig is a Market Maker Protection configuration and current state.
 type MMPConfig struct {
-	InstrumentFamily string          `json:"instFamily"`
-	MMPFrozen        bool            `json:"mmpFrozen"`
-	MMPFrozenUntil   time.Time       `json:"mmpFrozenUntil,format:unixmilli"`
-	TimeInterval     decimal.Decimal `json:"timeInterval"`
-	FrozenInterval   decimal.Decimal `json:"frozenInterval"`
-	QtyLimit         decimal.Decimal `json:"qtyLimit"`
+	InstrumentFamily string `json:"instFamily"`
+	MMPFrozen        bool   `json:"mmpFrozen"`
+	// MMPFrozenUntil is read as a millisecond timestamp, as it always has
+	// been. OKX's docs have described it since late 2023 as the remaining
+	// freeze interval in ms (example "1000" with frozenInterval "2000"), which
+	// would decode as that offset from the Unix epoch; no live sample has
+	// settled which reading is right.
+	MMPFrozenUntil time.Time       `json:"mmpFrozenUntil,format:unixmilli"`
+	TimeInterval   decimal.Decimal `json:"timeInterval"`
+	FrozenInterval decimal.Decimal `json:"frozenInterval"`
+	QtyLimit       decimal.Decimal `json:"qtyLimit"`
 }
 
 // SetMMPConfigService -- POST /api/v5/account/mmp-config (Trade)

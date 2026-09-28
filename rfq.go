@@ -520,7 +520,12 @@ type RfqMmpConfig struct {
 	FrozenInterval decimal.Decimal `json:"frozenInterval"`
 	CountLimit     decimal.Decimal `json:"countLimit"`
 	MMPFrozen      bool            `json:"mmpFrozen"`
-	MMPFrozenUntil time.Time       `json:"mmpFrozenUntil,format:unixmilli"`
+	// MMPFrozenUntil is read as a millisecond timestamp, as it always has
+	// been. OKX's docs have described it since late 2023 as the remaining
+	// freeze interval in ms (example "1000" with frozenInterval "2000"), which
+	// would decode as that offset from the Unix epoch; no live sample has
+	// settled which reading is right.
+	MMPFrozenUntil time.Time `json:"mmpFrozenUntil,format:unixmilli"`
 }
 
 // --- State-changing endpoints (Trade): implemented but NEVER exercised by the
