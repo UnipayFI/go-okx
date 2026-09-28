@@ -231,7 +231,7 @@ func parseCandles(rows [][]string) []Candle {
 		var c Candle
 		if len(row) > 0 {
 			if ms, err := strconv.ParseInt(row[0], 10, 64); err == nil {
-				c.Timestamp = time.UnixMilli(ms)
+				c.Timestamp = time.UnixMilli(ms).UTC()
 			}
 		}
 		if len(row) > 1 {

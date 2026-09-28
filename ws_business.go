@@ -84,7 +84,7 @@ func candleCol(row []string, i int) decimal.Decimal {
 func candleTs(row []string) time.Time {
 	if len(row) > 0 {
 		if ms, err := strconv.ParseInt(row[0], 10, 64); err == nil {
-			return time.UnixMilli(ms)
+			return time.UnixMilli(ms).UTC()
 		}
 	}
 	return time.Time{}

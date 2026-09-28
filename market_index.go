@@ -257,7 +257,7 @@ func parseIndexCandles(rows [][]string) []IndexCandle {
 		}
 		var ts time.Time
 		if ms, err := strconv.ParseInt(row[0], 10, 64); err == nil {
-			ts = time.UnixMilli(ms)
+			ts = time.UnixMilli(ms).UTC()
 		}
 		out = append(out, IndexCandle{
 			Timestamp: ts,

@@ -38,7 +38,7 @@ func parseRubikTs(s string) time.Time {
 	if err != nil {
 		return time.Time{}
 	}
-	return time.UnixMilli(ms)
+	return time.UnixMilli(ms).UTC()
 }
 
 // parseRubikDec converts a decimal string column into a decimal.Decimal,
