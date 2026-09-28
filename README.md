@@ -33,9 +33,10 @@ go get github.com/UnipayFI/go-okx@latest
 
 - One signing/transport core for the whole v5 API; a single `okx.Client`.
 - Fluent per-endpoint API: `NewXxxService(...).SetFoo(...).Do(ctx)`.
-- Amounts as `decimal.Decimal`, ms timestamps as `time.Time` — OKX's
-string-encoded numbers and `""`/`"0"`/`"-1"` "not set" sentinels are decoded
-for you (no per-field format tags).
+- Amounts as `decimal.Decimal`, timestamps as `time.Time` whose wire format is
+declared by a `format` tag option (`json:"cTime,format:unixmilli"`) — OKX's
+string-encoded numbers and `""`/`"0"`/`"-1"` "not set" sentinels are decoded for
+you.
 - OKX's always-an-array `data` envelope handled by typed helpers
 (`DoList`/`DoOne`/`DoObject`); batch order results expose per-item `sCode`.
 - WebSocket: typed subscribe services over the public/private/business gateways,
@@ -113,6 +114,14 @@ array. Service methods return the natural Go shape:
 - single-object endpoints (balance, config, place-order ack, …) → `(*T, error)`
 - batch order place/cancel/amend → `([]T, error)` whose items carry `sCode`/`sMsg`
 
+A request-level failure is returned as a `*client.APIError`: any non-`"0"`
+code, except `"1"`/`"2"` from order and ack endpoints that still return data —
+their items carry `sCode`/`sMsg`, which each item's `Err()` returns as a
+`*client.APIError` (nil on success). Use `client.AsAPIError` / `client.IsCode`
+to inspect wrapped errors. `APIError` has a value receiver, so under Go 1.27
+`go vet` (which `go test` runs) rejects `fmt.Errorf("%w", apiErr)` for an
+`apiErr` of type `*client.APIError` — wrap the original `error` instead.
+
 ## WebSocket
 
 ```go
@@ -154,6 +163,36 @@ ack, _ := tc.PlaceOrder(ctx, okx.OrderArg{
 // tc.AmendOrder / tc.CancelOrder / tc.BatchPlaceOrders / ...
 ```
 
+## JSON and timestamps
+
+The SDK uses Go 1.27's `encoding/json/v2` (keep the default `jsonv2` GOEXPERIMENT
+enabled; without it the SDK does not compile). Every `time.Time` field declares
+the format OKX actually sends with the `format` tag option, e.g.
+`json:"cTime,format:unixmilli"` — experimental in Go 1.27, and enabled by the
+SDK's codec. `common.JSONMarshal` / `common.JSONUnmarshal` apply that option's
+semantics plus OKX's quirks: numbers are read quoted or bare and written quoted
+in whole units; `""`/`"0"`/`"-1"`/`null` read as the zero time, which is written
+as `""`; and `estCompleteTime`'s UTC+8 wall-clock text uses the SDK-specific
+`okxUTC8WallClock` format. Decoded times are in UTC — use `.Equal` to compare and
+`.In(loc)` / `.Local()` to display.
+
+A `time.Time` without a `format` option is RFC 3339, as in the standard library.
+That includes your own types passed through `common.JSONMarshal` /
+`common.JSONUnmarshal` or the `request` helpers, which earlier versions encoded
+and decoded as milliseconds: tag such fields `format:unixmilli`, and put a
+`time.Time` into a `request.Post` body map as
+`strconv.FormatInt(t.UnixMilli(), 10)`.
+
+Go 1.27 only honours `format` tags when the experimental
+`ExperimentalSupportFormatTag` option is passed, so serialize SDK types with
+`common.JSONMarshal` / `common.JSONUnmarshal`. Where you only need
+`encoding/json/v2` to accept the tags (say, to store or log SDK values), you can
+pass `github.com/go-json-experiment/json.ExperimentalSupportFormatTag(true)`
+yourself; that applies the option's plain semantics (bare numbers, no
+`""`/`"0"`/`"-1"` sentinels, no `okxUTC8WallClock`), so it cannot read OKX's
+wire data. Plain `encoding/json` returns an error for structs with `format` tags,
+and `log/slog`'s JSON handler logs `!ERROR:...` in place of such a value.
+
 ## Packages
 
 
@@ -170,12 +209,12 @@ ack, _ := tc.PlaceOrder(ctx, okx.OrderArg{
 
 
 
-| Package              | Scope                                                                  |
-| -------------------- | ---------------------------------------------------------------------- |
-| `okx`                | the unified-account REST + WebSocket client (root package)             |
-| `client/` `request/` | REST client, options, HMAC signer, envelope decode, WS subscribe/login |
-| `common/`            | constants, global `time.Time` + `decimal.Decimal` JSON codec           |
-| `cmd/okxraw/`        | dev tool: sign + dump any endpoint's raw response                      |
+| Package              | Scope                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| `okx`                | the unified-account REST + WebSocket client (root package)                           |
+| `client/` `request/` | REST client, options, HMAC signer, envelope decode, WS subscribe/login               |
+| `common/`            | constants, `encoding/json/v2` codec: `format`-tagged `time.Time` + `decimal.Decimal` |
+| `cmd/okxraw/`        | dev tool: sign + dump any endpoint's raw response                                    |
 
 
 ## Testing
