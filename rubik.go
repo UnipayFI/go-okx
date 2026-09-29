@@ -576,6 +576,12 @@ func parseRubikOpenInterestVolumeExpiry(r []string) RubikOpenInterestVolumeExpir
 //
 // Returns option open interest and volume broken down by strike price for a
 // given expiry per time bar for a currency.
+//
+// expTime (YYYYMMDD) must be a currently listed expiry of ccy. A settled or
+// never-listed date returns code 50030 with msg "Illegal time range" (not the
+// generic 50030 permission error), and a malformed value returns 51000. Note
+// that the latest open-interest-volume-expiry bar still lists the expiry that
+// settled at the bar time (08:00 UTC), so its first row is not always live.
 type GetOptionOpenInterestVolumeStrikeService struct {
 	c      *Client
 	params map[string]string

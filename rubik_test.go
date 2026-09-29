@@ -2,6 +2,7 @@ package okx
 
 import (
 	"testing"
+	"time"
 )
 
 // TestRubik exercises every public trading-statistics ("rubik") endpoint live.
@@ -163,7 +164,11 @@ func TestRubik(t *testing.T) {
 	}
 
 	// option/open-interest-volume-expiry (ccy): [ts, expTime, callOI, putOI, callVol, putVol].
-	var nearExpiry string
+	// The latest bar still lists the expiry that settled at the bar time (08:00
+	// UTC), and the strike endpoint answers any expiry that is no longer listed
+	// with 50030 "Illegal time range". So rather than rows[0], take the first
+	// expiry dated after today (UTC): it is live at any time of day.
+	var liveExpiry string
 	{
 		const path = "/api/v5/rubik/stat/option/open-interest-volume-expiry"
 		params := map[string]string{"ccy": "BTC"}
@@ -171,25 +176,28 @@ func TestRubik(t *testing.T) {
 		if err != nil {
 			t.Fatalf("option open-interest-volume-expiry: %v", err)
 		}
-		if len(rows) > 0 {
-			if rows[0].Timestamp.IsZero() {
-				t.Errorf("option open-interest-volume-expiry: parsed row has zero Ts: %+v", rows[0])
+		if len(rows) > 0 && rows[0].Timestamp.IsZero() {
+			t.Errorf("option open-interest-volume-expiry: parsed row has zero Ts: %+v", rows[0])
+		}
+		today := time.Now().UTC().Format("20060102")
+		for _, r := range rows {
+			if r.ExpiryTime > today { // YYYYMMDD orders lexically
+				liveExpiry = r.ExpiryTime
+				break
 			}
-			nearExpiry = rows[0].ExpiryTime
 		}
 		_ = fetchRawGet(t, c, cx, path, params, false)
-		t.Logf("option open-interest-volume-expiry: %d rows (nearExpiry=%s)", len(rows), nearExpiry)
+		t.Logf("option open-interest-volume-expiry: %d rows (liveExpiry=%s)", len(rows), liveExpiry)
 	}
 
 	// option/open-interest-volume-strike (ccy, expTime): [ts, strike, callOI, putOI, callVol, putVol].
 	{
 		const path = "/api/v5/rubik/stat/option/open-interest-volume-strike"
-		expTime := nearExpiry
-		if expTime == "" {
-			expTime = "20260626"
+		if liveExpiry == "" {
+			t.Fatal("option open-interest-volume-strike: no expiry after today in the expiry bar")
 		}
-		params := map[string]string{"ccy": "BTC", "expTime": expTime}
-		rows, err := c.NewGetOptionOpenInterestVolumeStrikeService("BTC", expTime).Do(cx)
+		params := map[string]string{"ccy": "BTC", "expTime": liveExpiry}
+		rows, err := c.NewGetOptionOpenInterestVolumeStrikeService("BTC", liveExpiry).Do(cx)
 		if err != nil {
 			t.Fatalf("option open-interest-volume-strike: %v", err)
 		}
