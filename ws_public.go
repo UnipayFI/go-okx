@@ -271,6 +271,11 @@ type WsInstrument struct {
 }
 
 // SubscribeInstrumentsService -- "instruments" channel (public; no login).
+//
+// From 2026-09-30 OKX switches some scenarios from full pushes to incremental
+// pushes that carry only the instruments whose data changed, and may switch
+// more scenarios without further notice. Update a local instrument cache by
+// instId on each push; do not assume a push contains the full instrument set.
 type SubscribeInstrumentsService struct {
 	c        *WebSocketClient
 	instType InstType
