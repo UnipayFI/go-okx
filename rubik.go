@@ -76,6 +76,9 @@ func (s *GetSupportCoinService) Do(ctx context.Context) (*RubikSupportCoin, erro
 type RubikSupportCoin struct {
 	Contract []string `json:"contract"`
 	Option   []string `json:"option"`
+	// OptionV2 is an undocumented list the live API returns next to option
+	// (empty so far), typed like its sibling currency lists.
+	OptionV2 []string `json:"optionV2"`
 	Spot     []string `json:"spot"`
 }
 

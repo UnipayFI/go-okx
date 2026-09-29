@@ -13,7 +13,7 @@ func TestRubik(t *testing.T) {
 	c := testPublicClient()
 	cx := ctx(t)
 
-	// support-coin (object {contract,option,spot}).
+	// support-coin (object {contract,option,optionV2,spot}).
 	{
 		const path = "/api/v5/rubik/stat/trading-data/support-coin"
 		resp, err := c.NewGetSupportCoinService().Do(cx)
