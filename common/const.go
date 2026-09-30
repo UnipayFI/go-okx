@@ -15,15 +15,17 @@ const (
 	// WebSocket endpoints. OKX splits its v5 streams across three gateways:
 	// public (market data, no login), private (account/orders/positions, login
 	// required) and business (candles, algo orders, copy-trading, earn, ...).
-	DEFAULT_WS_PUBLIC_URL   = "wss://ws.okx.com:8443/ws/v5/public"
-	DEFAULT_WS_PRIVATE_URL  = "wss://ws.okx.com:8443/ws/v5/private"
-	DEFAULT_WS_BUSINESS_URL = "wss://ws.okx.com:8443/ws/v5/business"
+	// They use the default wss port 443; OKX stops accepting connections on the
+	// legacy port 8443 after 2026-10-31, so custom URLs must drop ":8443".
+	DEFAULT_WS_PUBLIC_URL   = "wss://ws.okx.com/ws/v5/public"
+	DEFAULT_WS_PRIVATE_URL  = "wss://ws.okx.com/ws/v5/private"
+	DEFAULT_WS_BUSINESS_URL = "wss://ws.okx.com/ws/v5/business"
 
 	// Demo (paper) trading WebSocket endpoints. Demo uses the dedicated
 	// wspap.okx.com host plus the "x-simulated-trading: 1" connect header.
-	DEFAULT_WS_DEMO_PUBLIC_URL   = "wss://wspap.okx.com:8443/ws/v5/public"
-	DEFAULT_WS_DEMO_PRIVATE_URL  = "wss://wspap.okx.com:8443/ws/v5/private"
-	DEFAULT_WS_DEMO_BUSINESS_URL = "wss://wspap.okx.com:8443/ws/v5/business"
+	DEFAULT_WS_DEMO_PUBLIC_URL   = "wss://wspap.okx.com/ws/v5/public"
+	DEFAULT_WS_DEMO_PRIVATE_URL  = "wss://wspap.okx.com/ws/v5/private"
+	DEFAULT_WS_DEMO_BUSINESS_URL = "wss://wspap.okx.com/ws/v5/business"
 
 	// TimestampLayout is the ISO-8601 UTC millisecond format OKX requires for the
 	// OK-ACCESS-TIMESTAMP header, e.g. "2020-12-08T09:08:57.715Z". For UTC times
