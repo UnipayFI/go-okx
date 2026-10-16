@@ -16,7 +16,8 @@ const (
 	// public (market data, no login), private (account/orders/positions, login
 	// required) and business (candles, algo orders, copy-trading, earn, ...).
 	// They use the default wss port 443; OKX stops accepting connections on the
-	// legacy port 8443 after 2026-10-31, so custom URLs must drop ":8443".
+	// legacy port 8443 from 2026-10-31 (Colo: 2026-11-16), so custom URLs,
+	// including Colo ones, must drop ":8443".
 	DEFAULT_WS_PUBLIC_URL   = "wss://ws.okx.com/ws/v5/public"
 	DEFAULT_WS_PRIVATE_URL  = "wss://ws.okx.com/ws/v5/private"
 	DEFAULT_WS_BUSINESS_URL = "wss://ws.okx.com/ws/v5/business"
