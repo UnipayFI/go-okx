@@ -3,6 +3,7 @@ package okx
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/UnipayFI/go-okx/request"
 	"github.com/shopspring/decimal"
@@ -141,4 +142,158 @@ type GLPHistoricalPerformance struct {
 	Date   string               `json:"date"`
 	Volume GLPCategoryBreakdown `json:"volume"`
 	Share  GLPCategoryBreakdown `json:"share"`
+}
+
+// GLPBusinessID selects a GLP v2 product and trading side (bizId).
+type GLPBusinessID string
+
+const (
+	GLPBusinessIDSpotMaker   GLPBusinessID = "14"
+	GLPBusinessIDFutNtoMaker GLPBusinessID = "15"
+	GLPBusinessIDPerpMaker   GLPBusinessID = "16"
+	GLPBusinessIDSpotTaker   GLPBusinessID = "17"
+	GLPBusinessIDFutNtoTaker GLPBusinessID = "18"
+	GLPBusinessIDPerpTaker   GLPBusinessID = "19"
+)
+
+// GetGLPV2OverviewService -- GET /api/v5/users/glp/v2/overview (Read)
+//
+// Returns the account's active GLP enrollments with current and estimated
+// tiers, tier requirements and week-to-date performance. A sub-account API key
+// returns the master account's GLP data.
+type GetGLPV2OverviewService struct {
+	c      *Client
+	params map[string]string
+}
+
+func (c *Client) NewGetGLPV2OverviewService() *GetGLPV2OverviewService {
+	return &GetGLPV2OverviewService{c: c, params: map[string]string{}}
+}
+
+func (s *GetGLPV2OverviewService) Do(ctx context.Context) (*GLPV2Overview, error) {
+	req := request.Get(ctx, s.c, "/api/v5/users/glp/v2/overview", s.params).WithSign()
+	return request.DoOne[GLPV2Overview](req)
+}
+
+// GetGLPV2DetailsService -- GET /api/v5/users/glp/v2/details (Read)
+//
+// Returns daily and week-to-date performance for one GLP product and trading
+// side within the current assessment period.
+type GetGLPV2DetailsService struct {
+	c      *Client
+	params map[string]string
+}
+
+// NewGetGLPV2DetailsService requires the GLP product and trading side (bizId).
+func (c *Client) NewGetGLPV2DetailsService(bizID GLPBusinessID) *GetGLPV2DetailsService {
+	return &GetGLPV2DetailsService{c: c, params: map[string]string{"bizId": string(bizID)}}
+}
+
+func (s *GetGLPV2DetailsService) Do(ctx context.Context) (*GLPV2Details, error) {
+	req := request.Get(ctx, s.c, "/api/v5/users/glp/v2/details", s.params).WithSign()
+	return request.DoOne[GLPV2Details](req)
+}
+
+// GetGLPV2PerformanceHistoryService -- GET /api/v5/users/glp/v2/history/performance (Read)
+//
+// Returns weekly assessment results and tier outcomes for one GLP product and
+// trading side.
+type GetGLPV2PerformanceHistoryService struct {
+	c      *Client
+	params map[string]string
+}
+
+// NewGetGLPV2PerformanceHistoryService requires the GLP product and trading side (bizId).
+func (c *Client) NewGetGLPV2PerformanceHistoryService(bizID GLPBusinessID) *GetGLPV2PerformanceHistoryService {
+	return &GetGLPV2PerformanceHistoryService{c: c, params: map[string]string{"bizId": string(bizID)}}
+}
+
+func (s *GetGLPV2PerformanceHistoryService) Do(ctx context.Context) (*GLPV2PerformanceHistory, error) {
+	req := request.Get(ctx, s.c, "/api/v5/users/glp/v2/history/performance", s.params).WithSign()
+	return request.DoOne[GLPV2PerformanceHistory](req)
+}
+
+// GLPV2Overview lists the account's active GLP enrollments (empty when none).
+// The validating account is not enrolled in any GLP program, so the GLP v2
+// structs are modeled from the OKX doc field tables.
+type GLPV2Overview struct {
+	Programs []GLPV2Program `json:"programs"`
+}
+
+// GLPV2Program is one active GLP enrollment. Program is GLP_A or GLP_B, Side is
+// MAKER or TAKER, and Instrument is SPOT, PERP or FUT_NTO. CurrentTier,
+// EstimatedNextTier and EstimatedNextStatus (disqualify/downgrade/qualify/
+// upgrade) are empty when unavailable.
+type GLPV2Program struct {
+	BusinessID          GLPBusinessID          `json:"bizId"`
+	Program             string                 `json:"program"`
+	Side                string                 `json:"side"`
+	Instrument          string                 `json:"instrument"`
+	CurrentTier         string                 `json:"currentTier"`
+	EstimatedNextTier   string                 `json:"estNextTier"`
+	EstimatedNextStatus string                 `json:"estNextStatus"`
+	GracePeriodEndTime  time.Time              `json:"gracePeriodEndTime,format:unixmilli"` // earliest date a downgrade can take effect; zero when not applicable
+	Requirement         []GLPV2TierRequirement `json:"requirement"`
+	Performance         []GLPV2WeekToDate      `json:"performance"`
+}
+
+// GLPV2TierRequirement is the market-share threshold for one GLP tier, as a
+// decimal fraction ("0.007" = 0.7%).
+type GLPV2TierRequirement struct {
+	Tier  string          `json:"tier"`
+	Share decimal.Decimal `json:"share"`
+}
+
+// GLPV2WeekToDate is the week-to-date share and volume as of one trading date.
+// AssessmentPeriod is PREVIOUS or CURRENT.
+type GLPV2WeekToDate struct {
+	Date             time.Time       `json:"date,format:unixmilli"`
+	AssessmentPeriod string          `json:"assessPeriod"`
+	Share            decimal.Decimal `json:"share"`
+	Volume           decimal.Decimal `json:"vol"`
+}
+
+// GLPV2Details is the current assessment period's performance for one GLP
+// product and trading side.
+type GLPV2Details struct {
+	AssessmentStartTime time.Time        `json:"assessStartTime,format:unixmilli"`
+	AssessmentEndTime   time.Time        `json:"assessEndTime,format:unixmilli"`
+	Performance         []GLPV2DailyPerf `json:"performance"`
+}
+
+// GLPV2DailyPerf is one trading date's volume and market share (decimal
+// fractions), both for the day and accumulated week-to-date, before weighting
+// (Original) and adjusted.
+type GLPV2DailyPerf struct {
+	Date                      time.Time       `json:"date,format:unixmilli"`
+	OriginalVolume            decimal.Decimal `json:"origVol"`
+	OriginalShare             decimal.Decimal `json:"origShare"`
+	AdjustedVolume            decimal.Decimal `json:"adjVol"`
+	AdjustedShare             decimal.Decimal `json:"adjShare"`
+	AccumulatedOriginalVolume decimal.Decimal `json:"accOrigVol"`
+	AccumulatedOriginalShare  decimal.Decimal `json:"accOrigShare"`
+	AccumulatedAdjustedVolume decimal.Decimal `json:"accAdjVol"`
+	AccumulatedAdjustedShare  decimal.Decimal `json:"accAdjShare"`
+}
+
+// GLPV2PerformanceHistory lists weekly GLP assessment results (empty when
+// there is no history).
+type GLPV2PerformanceHistory struct {
+	Performance []GLPV2Assessment `json:"performance"`
+}
+
+// GLPV2Assessment is one weekly assessment. Tier is the tier assessed against,
+// NextTier the tier it determined (empty when unavailable), and
+// AssessmentResult is disqualify, downgrade, qualify or upgrade (empty when
+// unavailable).
+type GLPV2Assessment struct {
+	AssessmentStartTime       time.Time       `json:"assessStartTime,format:unixmilli"`
+	AssessmentEndTime         time.Time       `json:"assessEndTime,format:unixmilli"`
+	Tier                      string          `json:"tier"`
+	NextTier                  string          `json:"nextTier"`
+	AccumulatedOriginalVolume decimal.Decimal `json:"accOrigVol"`
+	AccumulatedOriginalShare  decimal.Decimal `json:"accOrigShare"`
+	AccumulatedAdjustedVolume decimal.Decimal `json:"accAdjVol"`
+	AccumulatedAdjustedShare  decimal.Decimal `json:"accAdjShare"`
+	AssessmentResult          string          `json:"assessResult"`
 }
