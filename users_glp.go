@@ -100,23 +100,24 @@ type GLPProgramPerf struct {
 	MarketMakerLevelID    string             `json:"marketMakerLevelId"`
 	EnrolledTierDisplay   string             `json:"enrolledTierDisplay"`
 	QualifyingPool        string             `json:"qualifyingPool"`
-	QualifyingRows        []GLPQualifyingRow `json:"qualifyingRows"`
+	QualifyingRows        []string           `json:"qualifyingRows"` // row keys to highlight, e.g. "TOTAL"
 	Daily                 GLPPeriodPerf      `json:"daily"`
-	MonthToDate           GLPPeriodPerf      `json:"mtd"`
-}
-
-// GLPQualifyingRow is one row of a program's qualifying-pool breakdown. Modeled
-// from the OKX docs; unknown keys decode away.
-type GLPQualifyingRow struct {
-	PairType string          `json:"pairType"`
-	Volume   decimal.Decimal `json:"volume"`
-	Share    decimal.Decimal `json:"share"`
+	MonthToDate           GLPMonthToDatePerf `json:"mtd"`
 }
 
 // GLPPeriodPerf holds a period's volume and share breakdowns.
 type GLPPeriodPerf struct {
 	Volume GLPCategoryBreakdown `json:"volume"`
 	Share  GLPCategoryBreakdown `json:"share"`
+}
+
+// GLPMonthToDatePerf is the month-to-date breakdown plus the MTD qualification
+// outcome. MonthToDateStatus is QUALIFIED, UPGRADE or DOWNGRADE.
+type GLPMonthToDatePerf struct {
+	Volume            GLPCategoryBreakdown `json:"volume"`
+	Share             GLPCategoryBreakdown `json:"share"`
+	MonthToDateStatus string               `json:"mtdStatus"`
+	QualifyingShare   GLPMakerTaker        `json:"qualifyingShare"`
 }
 
 // GLPCategoryBreakdown splits a metric (volume or share) by GLP pair-type
