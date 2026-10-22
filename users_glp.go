@@ -9,7 +9,7 @@ import (
 )
 
 // GLPProgram selects a GLP (Global Liquidity Program) business line for the
-// historical-performance endpoint.
+// historicalperformance endpoint.
 type GLPProgram string
 
 const (
@@ -18,7 +18,7 @@ const (
 	GLPProgramFutNto GLPProgram = "FUT_NTO"
 )
 
-// GetGLPTodayPerformanceService -- GET /api/v5/users/glp/today-performance (Read)
+// GetGLPTodayPerformanceService -- GET /api/v5/users/glp/todayperformance (Read)
 //
 // Returns the enrolled GLP (Global Liquidity Program) account's current-day and
 // month-to-date assessment snapshots across all programs. Only available to
@@ -34,11 +34,11 @@ func (c *Client) NewGetGLPTodayPerformanceService() *GetGLPTodayPerformanceServi
 }
 
 func (s *GetGLPTodayPerformanceService) Do(ctx context.Context) (*GLPTodayPerformance, error) {
-	req := request.Get(ctx, s.c, "/api/v5/users/glp/today-performance", s.params).WithSign()
+	req := request.Get(ctx, s.c, "/api/v5/users/glp/todayperformance", s.params).WithSign()
 	return request.DoOne[GLPTodayPerformance](req)
 }
 
-// GetGLPHistoricalPerformanceService -- GET /api/v5/users/glp/historical-performance (Read)
+// GetGLPHistoricalPerformanceService -- GET /api/v5/users/glp/historicalperformance (Read)
 //
 // Returns the enrolled GLP account's daily performance history for one program,
 // sorted newest-first.
@@ -71,7 +71,7 @@ func (s *GetGLPHistoricalPerformanceService) SetLimit(limit int) *GetGLPHistoric
 }
 
 func (s *GetGLPHistoricalPerformanceService) Do(ctx context.Context) ([]GLPHistoricalPerformance, error) {
-	req := request.Get(ctx, s.c, "/api/v5/users/glp/historical-performance", s.params).WithSign()
+	req := request.Get(ctx, s.c, "/api/v5/users/glp/historicalperformance", s.params).WithSign()
 	return request.DoList[GLPHistoricalPerformance](req)
 }
 
