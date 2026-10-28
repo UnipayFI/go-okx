@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	jsonexp "github.com/go-json-experiment/json"
 	"github.com/shopspring/decimal"
 )
 
@@ -59,7 +58,7 @@ func TestUnixFormats(t *testing.T) {
 // standard `format` option (same instant, same UTC location), whether OKX
 // sends them quoted or bare.
 func TestUnixMatchesStandard(t *testing.T) {
-	std := jsonexp.ExperimentalSupportFormatTag(true)
+	std := supportFormatTag{}
 	compared := 0
 	defer func() {
 		if compared < 20 {
@@ -261,7 +260,7 @@ func TestOKXFormats(t *testing.T) {
 	if err := JSONUnmarshal([]byte(`{"z":"01/09/2023 20:10:48"}`), &v); err == nil {
 		t.Errorf("mismatched text: want error")
 	}
-	std := jsonexp.ExperimentalSupportFormatTag(true)
+	std := supportFormatTag{}
 	if err := json.Unmarshal([]byte(`{"z":"01/09/2023, 8:10:48 PM"}`), &v, std); err == nil {
 		t.Errorf("standard library accepted okxUTC8WallClock")
 	}
