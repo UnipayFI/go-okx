@@ -237,7 +237,9 @@ func subscribeManyBytes(ctx context.Context, client WsClient, gateway Gateway, p
 			case hdr.Event == "error":
 				cb(nil, &WsError{Code: hdr.Code, Message: hdr.Message})
 			case hdr.Event != "":
-				// subscribe / unsubscribe / login / channel-conn-count acks.
+				// subscribe / unsubscribe / login / channel-conn-count acks, and
+				// "notice" frames (64008 service-upgrade disconnect, 64010 port
+				// 8443 retirement).
 			case hdr.Data != nil:
 				cb(message, nil)
 			default:
