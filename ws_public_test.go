@@ -27,6 +27,7 @@ func TestWsPublic(t *testing.T) {
 	_ = c.NewSubscribeBooksService("BTC-USDT")
 	_ = c.NewSubscribeBooks5Service("BTC-USDT")
 	_ = c.NewSubscribeBboTbtService("BTC-USDT")
+	_ = c.NewSubscribeBboRpiTbtService("BTC-USDT")
 	_ = c.NewSubscribeBooks50L2TbtService("BTC-USDT")
 	_ = c.NewSubscribeBooksL2TbtService("BTC-USDT")
 	_ = c.NewSubscribeBooksRpiService("BTC-USDT")
@@ -102,6 +103,19 @@ func TestWsPublic(t *testing.T) {
 			t.Fatalf("decode: %v", err)
 		}
 		assertCovers(t, "ws/bbo-tbt", raw, data)
+	})
+
+	t.Run("bbo-rpi-tbt", func(t *testing.T) {
+		arg := request.WsArg{Channel: "bbo-rpi-tbt", InstrumentID: "BTC-USDT-SWAP"}
+		raw := wsFirstDataArray(t, c, request.GatewayPublic, false, arg, timeout)
+		if raw == nil {
+			return
+		}
+		var data []WsOrderBook
+		if err := common.JSONUnmarshal(raw, &data); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		assertCovers(t, "ws/bbo-rpi-tbt", raw, data)
 	})
 
 	t.Run("books-rpi", func(t *testing.T) {

@@ -86,8 +86,9 @@ func (s *SubscribeTradesService) Do(ctx context.Context, cb WsHandler[WsTrade]) 
 // WsOrderBook is an order-book frame. It is the superset shape across the
 // order-book channels: "books" carries asks/bids/ts/checksum/seqId/prevSeqId
 // (with Action "snapshot"/"update" on the push); "books5" carries
-// asks/bids/instId/ts/seqId; "bbo-tbt" carries asks/bids/ts/seqId; the VIP
-// "*-l2-tbt" channels carry the same as "books". Each level is
+// asks/bids/instId/ts/seqId; "bbo-tbt" and "bbo-rpi-tbt" carry
+// asks/bids/ts/seqId; the VIP "*-l2-tbt" channels carry the same as "books".
+// Each level is
 // [price, size, deprecated("0"), numOrders] as strings.
 type WsOrderBook struct {
 	Asks               [][]string `json:"asks"`
@@ -145,6 +146,27 @@ func (c *WebSocketClient) NewSubscribeBboTbtService(instId string) *SubscribeBbo
 func (s *SubscribeBboTbtService) Do(ctx context.Context, cb WsHandler[WsOrderBook]) (chan<- struct{}, <-chan struct{}, error) {
 	return request.Subscribe[[]WsOrderBook](ctx, s.c, request.GatewayPublic, false,
 		request.WsArg{Channel: "bbo-tbt", InstrumentID: s.instId}, cb)
+}
+
+// SubscribeBboRpiTbtService -- "bbo-rpi-tbt" channel (public; no login).
+// Tick-by-tick best RPI bid/offer (1-level book) built from RPI orders only,
+// pushed at ~10ms like "bbo-tbt". Unlike "books-rpi" it includes hidden RPI
+// orders (those crossing the organic best bid/offer or each other); compare
+// against "bbo-tbt" to tell visible from hidden. Each level is
+// [price, rpiSize, deprecated("0"), rpiOrderCount]; a side with no RPI order is
+// []. Since 2026-10-27.
+type SubscribeBboRpiTbtService struct {
+	c      *WebSocketClient
+	instId string
+}
+
+func (c *WebSocketClient) NewSubscribeBboRpiTbtService(instId string) *SubscribeBboRpiTbtService {
+	return &SubscribeBboRpiTbtService{c: c, instId: instId}
+}
+
+func (s *SubscribeBboRpiTbtService) Do(ctx context.Context, cb WsHandler[WsOrderBook]) (chan<- struct{}, <-chan struct{}, error) {
+	return request.Subscribe[[]WsOrderBook](ctx, s.c, request.GatewayPublic, false,
+		request.WsArg{Channel: "bbo-rpi-tbt", InstrumentID: s.instId}, cb)
 }
 
 // SubscribeBooks50L2TbtService -- "books50-l2-tbt" channel (public gateway;
