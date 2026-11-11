@@ -152,13 +152,13 @@ type Instrument struct {
 	// method is "hit" (EVENTS only). "up": price hit from below; "dn": price hit
 	// from above; empty for non-"hit" methods.
 	HitDirection string `json:"hitDir"`
-	// Elp is the ELP (Enhanced Liquidity Program) maker permission, returned only
+	// Rpi is the RPI (Retail Price Improvement) maker permission, returned only
 	// by the private GET /api/v5/account/instruments variant (empty on the public
-	// endpoint): "0" ELP not enabled for this symbol; "1" enabled but the current
-	// user lacks permission to place ELP orders; "2" enabled and permitted. OKX is
-	// rebranding ELP to RPI (Retail Price Improvement); the json key stays "elp"
-	// until the old names retire on 2026-10-31, after which it becomes "rpi".
-	Elp string `json:"elp"`
+	// endpoint): "0" RPI not enabled for this instrument; "1" enabled but the
+	// current user lacks permission to place RPI orders; "2" enabled and
+	// permitted. A "1"/"2" value does not imply RPI liquidity is present.
+	// Replaces the former "elp" key, retired after 2026-10-31.
+	Rpi string `json:"rpi"`
 	// RpiMinLevel is the minimum spacing between the RPI bid and RPI ask, in
 	// organic price levels. Default "4"; "0" for Event Contracts. Part of the
 	// ELP->RPI rebranding.

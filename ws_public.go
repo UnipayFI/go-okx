@@ -279,11 +279,10 @@ type WsInstrument struct {
 	// PreMarketSwitchTime is the time a pre-market instrument switched to normal
 	// trading. Applicable to pre-market SWAP and pre-market X-Perp FUTURES.
 	PreMarketSwitchTime time.Time `json:"preMktSwTime,format:unixmilli"`
-	// Elp is the ELP (Enhanced Liquidity Program) maker permission (values
-	// "0"/"1"/"2"; see Instrument.Elp). OKX is rebranding ELP to RPI (Retail
-	// Price Improvement); the json key stays "elp" until the old names retire on
-	// 2026-10-31, after which it becomes "rpi".
-	Elp string `json:"elp"`
+	// Rpi is the RPI (Retail Price Improvement) maker permission (values
+	// "0"/"1"/"2"; see Instrument.Rpi). Replaces the former "elp" key, retired
+	// after 2026-10-31.
+	Rpi string `json:"rpi"`
 	// RpiMinLevel is the minimum spacing between the RPI bid and RPI ask, in
 	// organic price levels (default "4"; "0" for Event Contracts). RpiMinPxBand is
 	// the minimum distance from the opposite-side organic best price, in basis

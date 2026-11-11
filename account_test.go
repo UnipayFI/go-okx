@@ -96,9 +96,9 @@ func TestAccount(t *testing.T) {
 
 	// --- GET /api/v5/account/instruments ---
 	// The shared Instrument type is owned by public_data.go and the public
-	// /public/instruments endpoint; the account endpoint adds an account-only
-	// "elp" key that the shared type intentionally does not carry, so this read
-	// is verified by deserializing the live response (Do) without assertCovers.
+	// /public/instruments endpoint; the account endpoint adds account-only keys
+	// (such as "rpi") on top of it, so this read is verified by deserializing the
+	// live response (Do) without assertCovers.
 	{
 		const label = "account/instruments"
 		resp, err := c.NewGetAccountInstrumentsService(InstTypeSpot).Do(cx)
