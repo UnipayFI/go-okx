@@ -518,8 +518,12 @@ func (s *GetMaxSizeService) Do(ctx context.Context) ([]MaxSize, error) {
 
 // MaxSize is the maximum buy/sell size of an instrument.
 type MaxSize struct {
-	InstrumentID       string          `json:"instId"`
-	Currency           string          `json:"ccy"`
+	InstrumentID string `json:"instId"`
+	Currency     string `json:"ccy"`
+	// MaxBuy and MaxSell are the maximum buyable/sellable sizes. In long/short
+	// position mode for FUTURES/SWAP the position tier limit is direction-specific:
+	// MaxBuy uses the long-side remaining and MaxSell the short-side remaining,
+	// so the two can differ at the same leverage.
 	MaxBuy             decimal.Decimal `json:"maxBuy"`
 	MaxSell            decimal.Decimal `json:"maxSell"`
 	TradeQuoteCurrency string          `json:"tradeQuoteCcy"`
@@ -588,7 +592,11 @@ func (s *GetMaxAvailSizeService) Do(ctx context.Context) ([]MaxAvailSize, error)
 
 // MaxAvailSize is the maximum available buy/sell amount of an instrument.
 type MaxAvailSize struct {
-	InstrumentID       string          `json:"instId"`
+	InstrumentID string `json:"instId"`
+	// AvailableBuy and AvailableSell are the maximum available balance/equity to
+	// buy/sell. In long/short position mode for FUTURES/SWAP the position tier
+	// limit is direction-specific: AvailableBuy uses the long-side remaining and
+	// AvailableSell the short-side remaining.
 	AvailableBuy       decimal.Decimal `json:"availBuy"`
 	AvailableSell      decimal.Decimal `json:"availSell"`
 	TradeQuoteCurrency string          `json:"tradeQuoteCcy"`
@@ -843,7 +851,10 @@ func (s *GetAdjustLeverageInfoService) SetCcy(ccy string) *GetAdjustLeverageInfo
 	return s
 }
 
-// SetPosSide sets the position side (long/short/net).
+// SetPosSide sets the position side (long/short/net; default net). In
+// long/short position mode, set long or short for accurate direction-specific
+// results: the position tier gradient factors behind estMaxAmt differ between
+// the two sides for SWAP and FUTURES.
 func (s *GetAdjustLeverageInfoService) SetPosSide(posSide PosSide) *GetAdjustLeverageInfoService {
 	s.params["posSide"] = string(posSide)
 	return s
@@ -861,11 +872,15 @@ type AdjustLeverageInfo struct {
 	EstimatedLiquidationPrice       decimal.Decimal `json:"estLiqPx"`
 	EstimatedMargin                 decimal.Decimal `json:"estMgn"`
 	EstimatedQuoteMargin            decimal.Decimal `json:"estQuoteMgn"`
-	EstimatedMaxAmount              decimal.Decimal `json:"estMaxAmt"`
-	EstimatedQuoteMaxAmount         decimal.Decimal `json:"estQuoteMaxAmt"`
-	ExistOrder                      bool            `json:"existOrd"`
-	MaxLeverage                     decimal.Decimal `json:"maxLever"`
-	MinLeverage                     decimal.Decimal `json:"minLever"`
+	// EstimatedMaxAmount is, for MARGIN, the estimated maximum loan in base
+	// currency, and for SWAP/FUTURES the estimated maximum number of contracts
+	// that can be opened, under the target leverage. In long/short position mode
+	// the position tier limit follows the direction given by posSide.
+	EstimatedMaxAmount      decimal.Decimal `json:"estMaxAmt"`
+	EstimatedQuoteMaxAmount decimal.Decimal `json:"estQuoteMaxAmt"`
+	ExistOrder              bool            `json:"existOrd"`
+	MaxLeverage             decimal.Decimal `json:"maxLever"`
+	MinLeverage             decimal.Decimal `json:"minLever"`
 }
 
 // GetMaxLoanService -- GET /api/v5/account/max-loan (Read)
