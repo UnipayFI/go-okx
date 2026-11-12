@@ -302,3 +302,66 @@ func TestPublicData(t *testing.T) {
 		}
 	}
 }
+
+// TestCorporateActions exercises GET /api/v5/public/corporate-actions against
+// the live API: the unfiltered page (typed decode + key coverage), cursor
+// pagination through NextAfter, and the instId filter. The endpoint allows one
+// request per 2 seconds per IP, so the calls are spaced out.
+func TestCorporateActions(t *testing.T) {
+	c := testPublicClient()
+	cx := ctx(t)
+	pace := func() { time.Sleep(2100 * time.Millisecond) }
+
+	resp, err := c.NewGetCorporateActionsService().SetLimit(100).Do(cx)
+	if err != nil {
+		t.Fatalf("corporate-actions: %v", err)
+	}
+	if resp.DataStatus == "" || resp.DataAsOf.IsZero() {
+		t.Fatalf("corporate-actions: empty envelope %+v", resp)
+	}
+	pace()
+	raw := fetchRawGet(t, c, cx, "/api/v5/public/corporate-actions", map[string]string{"limit": "100"}, false)
+	assertCovers(t, "corporate-actions", raw, resp)
+	if len(resp.Events) == 0 {
+		t.Skip("corporate-actions: no events listed; pagination and instId filter not exercised")
+	}
+
+	// limit=1 then follow the NextAfter cursor.
+	if len(resp.Events) > 1 {
+		pace()
+		first, err := c.NewGetCorporateActionsService().SetLimit(1).Do(cx)
+		if err != nil {
+			t.Fatalf("corporate-actions limit=1: %v", err)
+		}
+		if len(first.Events) != 1 || first.NextAfter == "" {
+			t.Fatalf("corporate-actions limit=1: got %d events, nextAfter %q", len(first.Events), first.NextAfter)
+		}
+		pace()
+		second, err := c.NewGetCorporateActionsService().SetLimit(1).SetAfter(first.NextAfter).Do(cx)
+		if err != nil {
+			t.Fatalf("corporate-actions after cursor: %v", err)
+		}
+		if len(second.Events) != 1 || second.Events[0].EventID == first.Events[0].EventID {
+			t.Fatalf("corporate-actions after cursor: did not advance (%+v)", second.Events)
+		}
+	}
+
+	// instId filter resolves the instrument's underlying stock.
+	ev := resp.Events[0]
+	if len(ev.Instruments) == 0 {
+		t.Fatalf("corporate-actions: event %s has no instruments", ev.EventID)
+	}
+	pace()
+	byInst, err := c.NewGetCorporateActionsService().SetInstId(ev.Instruments[0].InstrumentID).Do(cx)
+	if err != nil {
+		t.Fatalf("corporate-actions instId=%s: %v", ev.Instruments[0].InstrumentID, err)
+	}
+	if len(byInst.Events) == 0 {
+		t.Fatalf("corporate-actions instId=%s: no events", ev.Instruments[0].InstrumentID)
+	}
+	for _, e := range byInst.Events {
+		if e.Underlying != ev.Underlying {
+			t.Fatalf("corporate-actions instId=%s: got underlying %q, want %q", ev.Instruments[0].InstrumentID, e.Underlying, ev.Underlying)
+		}
+	}
+}

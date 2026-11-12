@@ -1161,3 +1161,116 @@ type DeltaHedgeCurrency struct {
 	Currency        string   `json:"ccy"`
 	HedgeCurrencies []string `json:"hedgeCcy"`
 }
+
+// GetCorporateActionsService -- GET /api/v5/public/corporate-actions (public)
+//
+// Returns the corporate action events (cash dividends, stock splits, reverse
+// stock splits, stock dividends, spinoffs) of the stocks underlying OKX's
+// stock-backed instruments: planned cutover time, processing status and the
+// trading state of every affected instrument. With no filter it lists events
+// across all underlyings. Rate limit: 1 request per 2 seconds per IP.
+//
+// The response is modeled on what the live API returns, which differs from
+// the official docs as of 2026-11-12: the data element is a page envelope
+// (dataStatus/dataAsOf/nextAfter) wrapping the events, the ticker is
+// reported as "underlying", the cutover time as RFC 3339 "plannedCutoverAt"
+// (not millisecond "cutoverTime"), eventVersion is a JSON number and
+// cashDividend is a display string such as "USD 0.27 / share" (not an object).
+type GetCorporateActionsService struct {
+	c      *Client
+	params map[string]string
+}
+
+func (c *Client) NewGetCorporateActionsService() *GetCorporateActionsService {
+	return &GetCorporateActionsService{c: c, params: map[string]string{}}
+}
+
+// SetTicker filters by underlying stock ticker, e.g. "AAPL". Mutually
+// exclusive with SetInstId.
+func (s *GetCorporateActionsService) SetTicker(ticker string) *GetCorporateActionsService {
+	s.params["ticker"] = ticker
+	return s
+}
+
+// SetInstId filters by instrument id, e.g. "AAPL-USDT-SWAP". OKX resolves the
+// instrument's underlying stock and returns that stock's events, so each
+// event's Instruments may list other related instruments too. Mutually
+// exclusive with SetTicker.
+func (s *GetCorporateActionsService) SetInstId(instId string) *GetCorporateActionsService {
+	s.params["instId"] = instId
+	return s
+}
+
+// SetLimit caps the number of events returned (max 100, default 20).
+func (s *GetCorporateActionsService) SetLimit(limit int) *GetCorporateActionsService {
+	s.params["limit"] = strconv.Itoa(limit)
+	return s
+}
+
+// SetAfter fetches the next page. Pass the NextAfter cursor of the previous
+// page; the live API rejects a bare caEventId here (code 50005) although the
+// docs describe one.
+func (s *GetCorporateActionsService) SetAfter(after string) *GetCorporateActionsService {
+	s.params["after"] = after
+	return s
+}
+
+// SetBefore paginates to newer events. The docs describe a caEventId; the
+// live API currently ignores the parameter.
+func (s *GetCorporateActionsService) SetBefore(before string) *GetCorporateActionsService {
+	s.params["before"] = before
+	return s
+}
+
+func (s *GetCorporateActionsService) Do(ctx context.Context) (*CorporateActions, error) {
+	req := request.Get(ctx, s.c, "/api/v5/public/corporate-actions", s.params)
+	return request.DoOne[CorporateActions](req)
+}
+
+// CorporateActions is one page of corporate action events.
+type CorporateActions struct {
+	DataStatus string    `json:"dataStatus"` // e.g. "SUCCESS"
+	DataAsOf   time.Time `json:"dataAsOf,format:RFC3339"`
+	// NextAfter is the cursor for SetAfter; empty on the last page.
+	NextAfter string                 `json:"nextAfter"`
+	Events    []CorporateActionEvent `json:"events"`
+}
+
+// CorporateActionEvent is a single corporate action of an underlying stock
+// and the OKX instruments it affects.
+type CorporateActionEvent struct {
+	EventID string `json:"caEventId"`
+	// EventVersion is incremented whenever the event's details are updated.
+	EventVersion      int    `json:"eventVersion"`
+	Underlying        string `json:"underlying"` // stock ticker, e.g. "AAPL"
+	BloombergGlobalID string `json:"bbGlobalId"`
+	Exchange          string `json:"exchange"` // listing exchange MIC code, e.g. "XNGS"
+	// ActionType is CASH_DIVIDEND, STOCK_SPLIT, REVERSE_STOCK_SPLIT,
+	// STOCK_DIVIDEND or SPINOFF.
+	ActionType string `json:"actionType"`
+	// Class is the corporate action classification: the docs list
+	// PREDICTABLE/UNPREDICTABLE; live cash dividends report DIVIDEND.
+	Class string `json:"caClass"`
+	// DividendSize is PENDING, SMALL, MEDIUM or LARGE (cash dividends only).
+	DividendSize string `json:"dividendSize"`
+	// CashDividend is the per-share dividend as display text, e.g.
+	// "USD 0.27 / share" (cash dividends only).
+	CashDividend string `json:"cashDividend"`
+	// RatioFrom and RatioTo are the split ratio of stock-split actions, per
+	// the docs; not yet observed live.
+	RatioFrom decimal.Decimal `json:"ratioFrom"`
+	RatioTo   decimal.Decimal `json:"ratioTo"`
+	// Status is the processing status. The docs list upcoming, scheduled,
+	// preparing, pre_pause, progressing and completed; live values are
+	// upper-case (e.g. "SCHEDULED").
+	Status           string                      `json:"status"`
+	PlannedCutoverAt time.Time                   `json:"plannedCutoverAt,format:RFC3339"`
+	Instruments      []CorporateActionInstrument `json:"instruments"`
+}
+
+// CorporateActionInstrument is an OKX instrument affected by a corporate
+// action and its current trading state: live, rebase, post_only or suspend.
+type CorporateActionInstrument struct {
+	InstrumentID string `json:"instId"`
+	State        string `json:"state"`
+}
