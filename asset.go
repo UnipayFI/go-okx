@@ -508,6 +508,116 @@ type DepositHistory struct {
 	Timestamp                 time.Time       `json:"ts,format:unixmilli"`
 }
 
+// GetLockedTravelRuleDepositsService -- GET /api/v5/asset/travel-rule/get-locked (private)
+//
+// Returns the list of deposits currently locked under the Travel Rule (at most
+// 50; empty slice when none are locked). Rate limit: 3 requests/s (User ID + IP).
+type GetLockedTravelRuleDepositsService struct {
+	c *Client
+}
+
+func (c *Client) NewGetLockedTravelRuleDepositsService() *GetLockedTravelRuleDepositsService {
+	return &GetLockedTravelRuleDepositsService{c: c}
+}
+
+func (s *GetLockedTravelRuleDepositsService) Do(ctx context.Context) ([]LockedTravelRuleDeposit, error) {
+	req := request.Get(ctx, s.c, "/api/v5/asset/travel-rule/get-locked").WithSign()
+	return request.DoList[LockedTravelRuleDeposit](req)
+}
+
+// LockedTravelRuleDeposit is one deposit currently locked under the Travel Rule.
+type LockedTravelRuleDeposit struct {
+	DepositID     string          `json:"depId"`
+	TransactionID string          `json:"txId"`
+	Address       string          `json:"addr"`
+	Currency      string          `json:"ccy"`
+	Chain         string          `json:"chain"`
+	Amount        decimal.Decimal `json:"amt"`
+	Timestamp     time.Time       `json:"ts,format:unixmilli"`
+}
+
+// TravelRuleQuestionnaire is the originator information submitted to
+// POST /api/v5/asset/travel-rule/unlock. Required conditional keys depend on
+// the user's entity.
+type TravelRuleQuestionnaire struct {
+	// PersonType is the originator type: "1" self (the depositor is the
+	// account holder), "2" third party. Required.
+	PersonType string `json:"personType"`
+	// WalletType is the source wallet type: "exchange" or "private". Required.
+	WalletType string `json:"walletType"`
+	// ExchID is the source exchange ID from GetExchangeListService; use "0" if
+	// unlisted. Required when WalletType is "exchange".
+	ExchID string `json:"exchId,omitempty"`
+	// ExchName is the source exchange name; required when ExchID is "0".
+	ExchName string `json:"exchName,omitempty"`
+	// OriginatorFirstName is the originator's first name (natural person, when
+	// OriginatorCompanyName is omitted).
+	OriginatorFirstName string `json:"origFirstName,omitempty"`
+	// OriginatorLastName is the originator's last name (natural person, when
+	// OriginatorCompanyName is omitted).
+	OriginatorLastName string `json:"origLastName,omitempty"`
+	// OriginatorCompanyName is the originator's company name (legal entity,
+	// when OriginatorFirstName and OriginatorLastName are omitted).
+	OriginatorCompanyName string `json:"origCompanyName,omitempty"`
+	// OriginatorCountry is the ISO 3166-1 alpha-2 country of residence (or
+	// registration for a legal entity), e.g. "SG".
+	OriginatorCountry string `json:"origCountry,omitempty"`
+	// OriginatorGeoAddress is the full one-line address (street, town/city,
+	// state/province, postal code).
+	OriginatorGeoAddress string `json:"origGeoAddress,omitempty"`
+	// OriginatorDOB is the date of birth (or incorporation/registration for a
+	// legal entity), formatted YYYY-MM-DD.
+	OriginatorDOB string `json:"origDob,omitempty"`
+	// OriginatorPOB is the ISO 3166-1 alpha-2 place of birth (or country of
+	// registration for a legal entity), e.g. "SG".
+	OriginatorPOB string `json:"origPob,omitempty"`
+	// OriginatorNationality is the originator's ISO 3166-1 alpha-2 nationality
+	// (natural person), e.g. "SG".
+	OriginatorNationality string `json:"origNationality,omitempty"`
+	// BrazilClassificationCode is the transfer purpose code for OKX Brazil
+	// users (Annex I below USD 50,000; Annex II for USD 50,000 or more).
+	BrazilClassificationCode string `json:"brazilClassificationCode,omitempty"`
+}
+
+// UnlockTravelRuleDepositService -- POST /api/v5/asset/travel-rule/unlock (private)
+//
+// Submits originator information to unlock a deposit locked under the Travel
+// Rule. If the deposit has already been unlocked, OKX returns success without
+// re-processing. Requires Withdraw permission. Rate limit: 3 requests/s
+// (User ID + IP). IMPLEMENT-ONLY: modifies deposit lock state on a real account
+// and is not executed by the test suite.
+//
+// Do returns a non-nil *UnlockTravelRuleDeposit with Result=true when the
+// unlock is accepted, or (nil, nil) when OKX returns an empty data array
+// (unlock failed; deposit remains locked). Travel Rule validation errors use
+// funding error codes 58385-58389.
+type UnlockTravelRuleDepositService struct {
+	c    *Client
+	body map[string]any
+}
+
+// NewUnlockTravelRuleDepositService builds a Travel Rule deposit unlock request.
+// depId is the locked deposit ID and questionnaire carries the originator
+// information required by the user's entity.
+func (c *Client) NewUnlockTravelRuleDepositService(depId string, questionnaire TravelRuleQuestionnaire) *UnlockTravelRuleDepositService {
+	return &UnlockTravelRuleDepositService{c: c, body: map[string]any{
+		"depId":         depId,
+		"questionnaire": questionnaire,
+	}}
+}
+
+func (s *UnlockTravelRuleDepositService) Do(ctx context.Context) (*UnlockTravelRuleDeposit, error) {
+	req := request.Post(ctx, s.c, "/api/v5/asset/travel-rule/unlock", s.body).WithSign()
+	return request.DoOne[UnlockTravelRuleDeposit](req)
+}
+
+// UnlockTravelRuleDeposit is the acknowledgement of a Travel Rule deposit
+// unlock request. Result is true when the unlock is accepted (released or
+// already unlocked).
+type UnlockTravelRuleDeposit struct {
+	Result bool `json:"result"`
+}
+
 // WithdrawalService -- POST /api/v5/asset/withdrawal (private)
 //
 // Submits a withdrawal (on-chain or internal). IMPLEMENT-ONLY: this withdraws

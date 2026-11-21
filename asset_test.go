@@ -10,8 +10,9 @@ import (
 // TestAsset exercises the funding-account (asset) read endpoints live and
 // asserts that the typed structs cover every key the real responses return. The
 // state-changing endpoints (transfer / withdrawal / cancel-withdrawal /
-// monthly-statement apply) are implemented but never executed: they move real
-// funds or create export jobs on a real account.
+// travel-rule unlock / monthly-statement apply) are implemented but never
+// executed: they move real funds, modify deposit locks or create export jobs on
+// a real account.
 func TestAsset(t *testing.T) {
 	c := testClient(t)
 	_ = c.SyncServerTime(ctx(t))
@@ -154,6 +155,23 @@ func TestAsset(t *testing.T) {
 		}
 	}
 
+	// --- GET /api/v5/asset/travel-rule/get-locked ---
+	{
+		const label = "asset/travel-rule/get-locked"
+		params := map[string]string{}
+		resp, err := c.NewGetLockedTravelRuleDepositsService().Do(cx)
+		if err != nil {
+			if !tolerable(t, label, err, "50011") {
+				t.Fatalf("%s: %v", label, err)
+			}
+		} else if len(resp) == 0 {
+			t.Logf("%s: empty data — coverage check skipped", label)
+		} else {
+			raw := fetchRawGet(t, c, cx, "/api/v5/asset/travel-rule/get-locked", params, true)
+			assertCovers(t, label, raw, resp)
+		}
+	}
+
 	// --- GET /api/v5/asset/withdrawal-history ---
 	{
 		const label = "asset/withdrawal-history"
@@ -279,5 +297,54 @@ func TestDepositWithdrawStatusEstCompleteTime(t *testing.T) {
 	}
 	if out, err := common.JSONMarshal(outer); err != nil || string(out) != embedded {
 		t.Errorf("embedded marshal = %s (%v), want %s", out, err, embedded)
+	}
+}
+
+// TestTravelRuleDepositJSON verifies JSON encoding/decoding of the Travel Rule
+// deposit structs against OKX's documented payloads.
+func TestTravelRuleDepositJSON(t *testing.T) {
+	const lockedRaw = `[{"depId":"98765","txId":"0xabc123","addr":"0xdef456","ccy":"USDT","chain":"ERC20","amt":"100.00000000","ts":"1714564800000"}]`
+	var locked []LockedTravelRuleDeposit
+	if err := common.JSONUnmarshal([]byte(lockedRaw), &locked); err != nil {
+		t.Fatalf("unmarshal locked: %v", err)
+	}
+	assertCovers(t, "asset/travel-rule/get-locked (fixture)", []byte(lockedRaw), locked)
+	if len(locked) != 1 || locked[0].DepositID != "98765" || locked[0].Currency != "USDT" || locked[0].Amount.String() != "100" {
+		t.Fatalf("locked = %+v", locked)
+	}
+	wantTS := time.UnixMilli(1714564800000).UTC()
+	if !locked[0].Timestamp.Equal(wantTS) {
+		t.Errorf("ts = %v, want %v", locked[0].Timestamp, wantTS)
+	}
+
+	q := TravelRuleQuestionnaire{
+		PersonType:           "2",
+		WalletType:           "exchange",
+		ExchID:               "0",
+		ExchName:             "Example Exchange",
+		OriginatorFirstName:  "Alex",
+		OriginatorLastName:   "Chen",
+		OriginatorCountry:    "SG",
+		OriginatorGeoAddress: "123 Main St, Singapore 018956",
+		OriginatorDOB:        "1990-01-01",
+		OriginatorPOB:        "SG",
+	}
+	out, err := common.JSONMarshal(q)
+	if err != nil {
+		t.Fatalf("marshal questionnaire: %v", err)
+	}
+	const wantQ = `{"personType":"2","walletType":"exchange","exchId":"0","exchName":"Example Exchange","origFirstName":"Alex","origLastName":"Chen","origCountry":"SG","origGeoAddress":"123 Main St, Singapore 018956","origDob":"1990-01-01","origPob":"SG"}`
+	if string(out) != wantQ {
+		t.Errorf("questionnaire = %s, want %s", out, wantQ)
+	}
+
+	const unlockRaw = `[{"result":true}]`
+	var unlock []UnlockTravelRuleDeposit
+	if err := common.JSONUnmarshal([]byte(unlockRaw), &unlock); err != nil {
+		t.Fatalf("unmarshal unlock: %v", err)
+	}
+	assertCovers(t, "asset/travel-rule/unlock (fixture)", []byte(unlockRaw), unlock)
+	if len(unlock) != 1 || !unlock[0].Result {
+		t.Fatalf("unlock = %+v", unlock)
 	}
 }
