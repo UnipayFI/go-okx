@@ -298,216 +298,353 @@ type GLPV2Assessment struct {
 	AssessmentResult          string          `json:"assessResult"`
 }
 
-// RegisterGLPCPairsService -- POST /api/v5/users/glp/c/register-pairs (Trade)
+// GLPCInstType selects the instrument category for GLP-C (Global Liquidity
+// Program - C) endpoints. Requests use SPOT or PERP (including X-Perp); the
+// hourly assessment summary returns SWAP for perpetuals.
+type GLPCInstType string
+
+const (
+	GLPCInstTypeSpot GLPCInstType = "SPOT"
+	GLPCInstTypePerp GLPCInstType = "PERP"
+	GLPCInstTypeSwap GLPCInstType = "SWAP"
+)
+
+// GLPCFilterType filters eligible GLP-C instruments by enrollment state.
+type GLPCFilterType int
+
+const (
+	GLPCFilterAll        GLPCFilterType = 1 // all eligible instruments
+	GLPCFilterRegistered GLPCFilterType = 2 // registered
+	GLPCFilterOpen       GLPCFilterType = 3 // open for registration
+)
+
+// GetGLPCInstrumentsService -- GET /api/v5/users/glp-c/instruments (Read)
 //
-// Registers one or more instruments for the GLP-C (Global Liquidity Program —
-// Category C) market maker program, which assesses order book depth on tail-end
-// trading pairs on an hourly basis. Supports batch registration; each item in
-// the response carries its own SCode/SMsg (use Err() to inspect). IMPLEMENT-ONLY:
-// mutates market-maker pair registrations. Rate limit: 5 requests per 2 seconds
-// per User ID.
-type RegisterGLPCPairsService struct {
+// Retrieves GLP-C instruments eligible for the current account, with
+// registration counts and qualification requirements. Only instruments tradable
+// by the current account are returned. Note: OKX returns "data" as a JSON
+// object rather than an array, so the service decodes via DoObject.
+// Rate limit: 5 requests per second per User ID.
+type GetGLPCInstrumentsService struct {
+	c      *Client
+	params map[string]string
+}
+
+// NewGetGLPCInstrumentsService requires the instrument category (SPOT or PERP),
+// 1-based page number, page size (max 100), and enrollment filter type.
+func (c *Client) NewGetGLPCInstrumentsService(instType GLPCInstType, page, pageSize int, filterType GLPCFilterType) *GetGLPCInstrumentsService {
+	return &GetGLPCInstrumentsService{
+		c: c,
+		params: map[string]string{
+			"instType":   string(instType),
+			"page":       strconv.Itoa(page),
+			"pageSize":   strconv.Itoa(pageSize),
+			"filterType": strconv.Itoa(int(filterType)),
+		},
+	}
+}
+
+// SetInstId filters by a single instrument ID (e.g. "BTC-USDT").
+func (s *GetGLPCInstrumentsService) SetInstId(instId string) *GetGLPCInstrumentsService {
+	s.params["instId"] = instId
+	return s
+}
+
+func (s *GetGLPCInstrumentsService) Do(ctx context.Context) (*GLPCInstrumentsPage, error) {
+	req := request.Get(ctx, s.c, "/api/v5/users/glp-c/instruments", s.params).WithSign()
+	return request.DoObject[GLPCInstrumentsPage](req)
+}
+
+// GLPCInstrumentsPage is one paginated page of eligible GLP-C instruments.
+// The validating account is not whitelisted for GLP-C, so the GLP-C structs are
+// modeled from the OKX doc field tables.
+type GLPCInstrumentsPage struct {
+	Page        int              `json:"page"`
+	PageSize    int              `json:"pageSize"`
+	Total       int              `json:"total"`
+	StartIndex  int              `json:"startIndex"`
+	HasNextPage bool             `json:"hasNextPage"`
+	Rows        []GLPCInstrument `json:"rows"`
+}
+
+// GLPCInstrument is one GLP-C eligible instrument and its quoting requirements.
+// InstrumentGroup is G1, G2 or G3; RequiredMarketShare and RequiredUptime are
+// decimal fractions (e.g. "0.05" = 5%, "0.7" = 70%; "0.5" during public beta).
+type GLPCInstrument struct {
+	InstrumentType        GLPCInstType    `json:"instType"`
+	InstrumentID          string          `json:"instId"`
+	InstrumentGroup       string          `json:"instGroup"`
+	RegisteredClientCount int             `json:"registeredClientCount"`
+	DailyAvgPlatTV7d      decimal.Decimal `json:"dailyAvgPlatTv7d"`    // 7-day daily average platform trading volume
+	B3PriceLevel          decimal.Decimal `json:"b3PriceLevel"`        // 7-day avg spread between 3rd-best ask and bid, in bp
+	B3PriceQuoteSize      decimal.Decimal `json:"b3PriceQuoteSize"`    // 7-day avg combined bid+ask quote size across levels 1-3, in USD
+	RequiredMarketShare   decimal.Decimal `json:"requiredMarketShare"` // required minute market share
+	RequiredUptime        decimal.Decimal `json:"requiredUptime"`      // required hourly uptime
+}
+
+// GLPCInstrumentRef identifies one instrument by category + instrument ID in
+// GLP-C enrollment requests and responses.
+type GLPCInstrumentRef struct {
+	InstrumentType GLPCInstType `json:"instType"`
+	InstrumentID   string       `json:"instId"`
+}
+
+// EnrollGLPCInstrumentsService -- POST /api/v5/users/glp-c/enroll-instruments (Trade)
+//
+// Enrolls one or more instruments in GLP-C. Enrollment applies to the whole
+// participant and is assessed from the current minute. Enrolling an already
+// enrolled instrument returns it in EnrolledInstruments; withdrawal is not
+// supported in this phase. IMPLEMENT-ONLY: mutates market-maker enrollments.
+// Rate limit: 5 requests per second per User ID.
+type EnrollGLPCInstrumentsService struct {
 	c    *Client
 	body map[string]any
 }
 
-// NewRegisterGLPCPairsService requires the list of instrument IDs to register
-// for GLP-C (e.g. "DOGE-USDT", "PEPE-USDT-SWAP").
-func (c *Client) NewRegisterGLPCPairsService(instIDs []string) *RegisterGLPCPairsService {
-	return &RegisterGLPCPairsService{c: c, body: map[string]any{"instIds": instIDs}}
+// NewEnrollGLPCInstrumentsService requires the list of instruments to enroll.
+func (c *Client) NewEnrollGLPCInstrumentsService(insts []GLPCInstrumentRef) *EnrollGLPCInstrumentsService {
+	return &EnrollGLPCInstrumentsService{c: c, body: map[string]any{"instsToEnroll": insts}}
 }
 
-func (s *RegisterGLPCPairsService) Do(ctx context.Context) ([]GLPCRegisterPairResult, error) {
-	req := request.Post(ctx, s.c, "/api/v5/users/glp/c/register-pairs", s.body).WithSign()
-	return request.DoListPartial[GLPCRegisterPairResult](req)
+func (s *EnrollGLPCInstrumentsService) Do(ctx context.Context) (*GLPCEnrollResult, error) {
+	req := request.Post(ctx, s.c, "/api/v5/users/glp-c/enroll-instruments", s.body).WithSign()
+	return request.DoObject[GLPCEnrollResult](req)
 }
 
-// GLPCRegisterPairResult is the per-instrument registration outcome returned by
-// POST /api/v5/users/glp/c/register-pairs. SCode "0" means success; call Err()
-// to convert non-zero codes to a *client.APIError.
-type GLPCRegisterPairResult struct {
-	InstrumentID string `json:"instId"`
-	SCode        string `json:"sCode"`
-	SMsg         string `json:"sMsg"`
+// GLPCEnrollResult splits the enrollment attempt into successfully enrolled and
+// failed (invalid or ineligible) instruments.
+type GLPCEnrollResult struct {
+	EnrolledInstruments []GLPCInstrumentRef `json:"enrolledInsts"`
+	FailedInstruments   []GLPCInstrumentRef `json:"failedInsts"`
 }
 
-// GetGLPCRegisteredPairsService -- GET /api/v5/users/glp/c/registered-pairs (Read)
+// GetGLPCEnrollStatsService -- GET /api/v5/users/glp-c/enroll/stats (Read)
 //
-// Returns the list of instruments the account has registered for GLP-C.
-// Rate limit: 5 requests per 2 seconds per User ID.
-type GetGLPCRegisteredPairsService struct {
+// Retrieves the total, registered and open-for-registration GLP-C instrument
+// counts. Note: OKX returns "data" as a JSON object rather than an array, so
+// the service decodes via DoObject. Rate limit: 5 requests per second per User ID.
+type GetGLPCEnrollStatsService struct {
 	c      *Client
 	params map[string]string
 }
 
-func (c *Client) NewGetGLPCRegisteredPairsService() *GetGLPCRegisteredPairsService {
-	return &GetGLPCRegisteredPairsService{c: c, params: map[string]string{}}
+// NewGetGLPCEnrollStatsService requires the instrument category (SPOT or PERP).
+func (c *Client) NewGetGLPCEnrollStatsService(instType GLPCInstType) *GetGLPCEnrollStatsService {
+	return &GetGLPCEnrollStatsService{c: c, params: map[string]string{"instType": string(instType)}}
 }
 
-// SetInstType filters by instrument type (SPOT or SWAP). Returns all if omitted.
-func (s *GetGLPCRegisteredPairsService) SetInstType(instType InstType) *GetGLPCRegisteredPairsService {
+func (s *GetGLPCEnrollStatsService) Do(ctx context.Context) (*GLPCEnrollStats, error) {
+	req := request.Get(ctx, s.c, "/api/v5/users/glp-c/enroll/stats", s.params).WithSign()
+	return request.DoObject[GLPCEnrollStats](req)
+}
+
+// GLPCEnrollStats holds GLP-C instrument counts. AvailableInstrumentCount is
+// not necessarily equal to TotalInstrumentCount - RegisteredInstrumentCount.
+type GLPCEnrollStats struct {
+	TotalInstrumentCount      int `json:"totalInstCount"`
+	RegisteredInstrumentCount int `json:"registeredInstCount"`
+	AvailableInstrumentCount  int `json:"availableInstCount"`
+}
+
+// GetGLPCMinuteAssessmentService -- GET /api/v5/users/glp-c/quote-assessment/minute (Read)
+//
+// Retrieves minute-level GLP-C quote assessment results of one instrument,
+// sorted ascending by minuteTs. Either SetInstId or SetInstIdCode is required
+// (if both are passed, instIdCode takes precedence). Assessment data is
+// available for the last 72 hours. Rate limit: 5 requests per second per User ID.
+type GetGLPCMinuteAssessmentService struct {
+	c      *Client
+	params map[string]string
+}
+
+// NewGetGLPCMinuteAssessmentService requires the inclusive begin and end
+// timestamps (within the last 72 hours, end not later than request time).
+func (c *Client) NewGetGLPCMinuteAssessmentService(beginTs, endTs time.Time) *GetGLPCMinuteAssessmentService {
+	return &GetGLPCMinuteAssessmentService{
+		c: c,
+		params: map[string]string{
+			"beginTs": strconv.FormatInt(beginTs.UnixMilli(), 10),
+			"endTs":   strconv.FormatInt(endTs.UnixMilli(), 10),
+		},
+	}
+}
+
+// SetInstType filters by instrument category (SPOT or PERP, including X-Perp).
+func (s *GetGLPCMinuteAssessmentService) SetInstType(instType GLPCInstType) *GetGLPCMinuteAssessmentService {
 	s.params["instType"] = string(instType)
 	return s
 }
 
-func (s *GetGLPCRegisteredPairsService) Do(ctx context.Context) ([]GLPCRegisteredPair, error) {
-	req := request.Get(ctx, s.c, "/api/v5/users/glp/c/registered-pairs", s.params).WithSign()
-	return request.DoList[GLPCRegisteredPair](req)
-}
-
-// GLPCRegisteredPair is one instrument registered for the GLP-C program.
-// The validating account is not enrolled in any GLP program, so the GLP-C
-// structs are modeled from the OKX doc field tables.
-type GLPCRegisteredPair struct {
-	InstrumentID   string    `json:"instId"`
-	InstrumentType InstType  `json:"instType"`
-	RegisterTime   time.Time `json:"registerTime,format:unixmilli"`
-}
-
-// GetGLPCPerformanceService -- GET /api/v5/users/glp/c/performance (Read)
-//
-// Returns hourly assessment performance data for registered GLP-C pairs.
-// Note: ts is not unique across pairs; when instId is omitted, after/before
-// exclude every record at the requested ts and can skip boundary rows. Specify
-// SetInstId to paginate without missing records. Rate limit: 5 requests per 2
-// seconds per User ID.
-type GetGLPCPerformanceService struct {
-	c      *Client
-	params map[string]string
-}
-
-func (c *Client) NewGetGLPCPerformanceService() *GetGLPCPerformanceService {
-	return &GetGLPCPerformanceService{c: c, params: map[string]string{}}
-}
-
-// SetInstId filters by instrument ID. Returns all registered pairs if omitted.
-func (s *GetGLPCPerformanceService) SetInstId(instId string) *GetGLPCPerformanceService {
+// SetInstId selects the instrument by ID (e.g. "BTC-USDT-SWAP"). Either
+// SetInstId or SetInstIdCode is required.
+func (s *GetGLPCMinuteAssessmentService) SetInstId(instId string) *GetGLPCMinuteAssessmentService {
 	s.params["instId"] = instId
 	return s
 }
 
-// SetInstType filters by instrument type (SPOT or SWAP).
-func (s *GetGLPCPerformanceService) SetInstType(instType InstType) *GetGLPCPerformanceService {
-	s.params["instType"] = string(instType)
+// SetInstIdCode selects the instrument by ID code (e.g. "10459"). Takes
+// precedence if both instId and instIdCode are passed.
+func (s *GetGLPCMinuteAssessmentService) SetInstIdCode(instIdCode string) *GetGLPCMinuteAssessmentService {
+	s.params["instIdCode"] = instIdCode
 	return s
 }
 
-// SetBegin filters to records at or after the given timestamp (inclusive).
-func (s *GetGLPCPerformanceService) SetBegin(t time.Time) *GetGLPCPerformanceService {
-	s.params["begin"] = strconv.FormatInt(t.UnixMilli(), 10)
-	return s
+func (s *GetGLPCMinuteAssessmentService) Do(ctx context.Context) ([]GLPCMinuteAssessment, error) {
+	req := request.Get(ctx, s.c, "/api/v5/users/glp-c/quote-assessment/minute", s.params).WithSign()
+	return request.DoList[GLPCMinuteAssessment](req)
 }
 
-// SetEnd filters to records at or before the given timestamp (inclusive).
-func (s *GetGLPCPerformanceService) SetEnd(t time.Time) *GetGLPCPerformanceService {
-	s.params["end"] = strconv.FormatInt(t.UnixMilli(), 10)
-	return s
+// GLPCMinuteAssessment is one minute-level GLP-C quote assessment record.
+// MinuteStatus is QUALIFIED or NOT_QUALIFIED. ReasonCode is one of QUALIFIED,
+// BELOW_THRESHOLD, NO_CUSTOMER_QUOTE, MARKET_DENOMINATOR_ZERO,
+// SOURCE_DATA_MISSING or SOURCE_DATA_INVALID.
+type GLPCMinuteAssessment struct {
+	InstrumentIDCode                   string                 `json:"instIdCode"`
+	InstrumentType                     GLPCInstType           `json:"instType"`
+	InstrumentID                       string                 `json:"instId"`
+	MinuteTimestamp                    time.Time              `json:"minuteTs,format:unixmilli"`
+	BilateralWeightedShare             decimal.Decimal        `json:"bilateralWeightedShare"`
+	Threshold                          decimal.Decimal        `json:"threshold"`
+	MinuteStatus                       string                 `json:"minuteStatus"`
+	ReasonCode                         string                 `json:"reasonCode"`
+	ParticipantBidOriginalQuoteSizeUSD decimal.Decimal        `json:"participantBidOriginalQuoteSizeUsd"`
+	ParticipantAskOriginalQuoteSizeUSD decimal.Decimal        `json:"participantAskOriginalQuoteSizeUsd"`
+	ParticipantBidWeightedQuoteSizeUSD decimal.Decimal        `json:"participantBidWeightedQuoteSizeUsd"`
+	ParticipantAskWeightedQuoteSizeUSD decimal.Decimal        `json:"participantAskWeightedQuoteSizeUsd"`
+	Levels                             []GLPCMinuteLevelQuote `json:"levels"`
 }
 
-// SetAfter paginates to records earlier than the given ts.
-func (s *GetGLPCPerformanceService) SetAfter(t time.Time) *GetGLPCPerformanceService {
-	s.params["after"] = strconv.FormatInt(t.UnixMilli(), 10)
-	return s
+// GLPCMinuteLevelQuote is the per-price-level bid/ask quote breakdown in USD.
+type GLPCMinuteLevelQuote struct {
+	Level                string          `json:"level"`
+	Multiplier           decimal.Decimal `json:"multiplier"`
+	BidQuoteSizeUSD      decimal.Decimal `json:"bidQuoteSizeUsd"`
+	AskQuoteSizeUSD      decimal.Decimal `json:"askQuoteSizeUsd"`
+	BidMultipliedSizeUSD decimal.Decimal `json:"bidMultipliedSizeUsd"`
+	AskMultipliedSizeUSD decimal.Decimal `json:"askMultipliedSizeUsd"`
 }
 
-// SetBefore paginates to records newer than the given ts.
-func (s *GetGLPCPerformanceService) SetBefore(t time.Time) *GetGLPCPerformanceService {
-	s.params["before"] = strconv.FormatInt(t.UnixMilli(), 10)
-	return s
-}
-
-// SetLimit caps the number of results returned (default 100, max 100).
-func (s *GetGLPCPerformanceService) SetLimit(limit int) *GetGLPCPerformanceService {
-	s.params["limit"] = strconv.Itoa(limit)
-	return s
-}
-
-func (s *GetGLPCPerformanceService) Do(ctx context.Context) ([]GLPCPerformance, error) {
-	req := request.Get(ctx, s.c, "/api/v5/users/glp/c/performance", s.params).WithSign()
-	return request.DoList[GLPCPerformance](req)
-}
-
-// GLPCPerformance is one hourly GLP-C order book depth assessment record.
-type GLPCPerformance struct {
-	InstrumentID   string          `json:"instId"`
-	InstrumentType InstType        `json:"instType"`
-	Timestamp      time.Time       `json:"ts,format:unixmilli"` // assessment timestamp (on the hour)
-	Qualified      string          `json:"qualified"`           // OKX sends a quoted "true"/"false"
-	BidDepth       decimal.Decimal `json:"bidDepth"`            // bid-side depth in top 3 levels
-	AskDepth       decimal.Decimal `json:"askDepth"`            // ask-side depth in top 3 levels
-	RequiredDepth  decimal.Decimal `json:"reqDepth"`            // required depth threshold to qualify
-}
-
-// GetGLPCPerformanceHistoryService -- GET /api/v5/users/glp/c/history/performance (Read)
+// GetGLPCHourlyInstrumentAssessmentService -- GET /api/v5/users/glp-c/quote-assessment/hour/instrument (Read)
 //
-// Returns aggregated historical assessment results for registered GLP-C pairs.
-// Note: assessStartTime is not unique across pairs; specify SetInstId when
-// paginating with after/before to reduce the chance of skipped records.
-// Rate limit: 5 requests per 2 seconds per User ID.
-type GetGLPCPerformanceHistoryService struct {
+// Retrieves hourly GLP-C qualification results of one instrument for ended
+// hours (the current hour is not returned). Either SetInstId or SetInstIdCode
+// is required (if both are passed, instIdCode takes precedence).
+// Rate limit: 5 requests per second per User ID.
+type GetGLPCHourlyInstrumentAssessmentService struct {
 	c      *Client
 	params map[string]string
 }
 
-func (c *Client) NewGetGLPCPerformanceHistoryService() *GetGLPCPerformanceHistoryService {
-	return &GetGLPCPerformanceHistoryService{c: c, params: map[string]string{}}
+// NewGetGLPCHourlyInstrumentAssessmentService requires the inclusive begin and
+// end timestamps (within the last 72 hours, end not later than request time).
+func (c *Client) NewGetGLPCHourlyInstrumentAssessmentService(beginTs, endTs time.Time) *GetGLPCHourlyInstrumentAssessmentService {
+	return &GetGLPCHourlyInstrumentAssessmentService{
+		c: c,
+		params: map[string]string{
+			"beginTs": strconv.FormatInt(beginTs.UnixMilli(), 10),
+			"endTs":   strconv.FormatInt(endTs.UnixMilli(), 10),
+		},
+	}
 }
 
-// SetInstId filters by instrument ID.
-func (s *GetGLPCPerformanceHistoryService) SetInstId(instId string) *GetGLPCPerformanceHistoryService {
-	s.params["instId"] = instId
-	return s
-}
-
-// SetInstType filters by instrument type (SPOT or SWAP).
-func (s *GetGLPCPerformanceHistoryService) SetInstType(instType InstType) *GetGLPCPerformanceHistoryService {
+// SetInstType filters by instrument category (SPOT or PERP, including X-Perp).
+func (s *GetGLPCHourlyInstrumentAssessmentService) SetInstType(instType GLPCInstType) *GetGLPCHourlyInstrumentAssessmentService {
 	s.params["instType"] = string(instType)
 	return s
 }
 
-// SetBegin filters by begin timestamp on assessStartTime.
-func (s *GetGLPCPerformanceHistoryService) SetBegin(t time.Time) *GetGLPCPerformanceHistoryService {
-	s.params["begin"] = strconv.FormatInt(t.UnixMilli(), 10)
+// SetInstId selects the instrument by ID (e.g. "BTC-USDT-SWAP"). Either
+// SetInstId or SetInstIdCode is required.
+func (s *GetGLPCHourlyInstrumentAssessmentService) SetInstId(instId string) *GetGLPCHourlyInstrumentAssessmentService {
+	s.params["instId"] = instId
 	return s
 }
 
-// SetEnd filters by end timestamp on assessStartTime.
-func (s *GetGLPCPerformanceHistoryService) SetEnd(t time.Time) *GetGLPCPerformanceHistoryService {
-	s.params["end"] = strconv.FormatInt(t.UnixMilli(), 10)
+// SetInstIdCode selects the instrument by ID code (e.g. "10459"). Takes
+// precedence if both instId and instIdCode are passed.
+func (s *GetGLPCHourlyInstrumentAssessmentService) SetInstIdCode(instIdCode string) *GetGLPCHourlyInstrumentAssessmentService {
+	s.params["instIdCode"] = instIdCode
 	return s
 }
 
-// SetAfter paginates to records earlier than the given assessStartTime.
-func (s *GetGLPCPerformanceHistoryService) SetAfter(t time.Time) *GetGLPCPerformanceHistoryService {
-	s.params["after"] = strconv.FormatInt(t.UnixMilli(), 10)
+func (s *GetGLPCHourlyInstrumentAssessmentService) Do(ctx context.Context) ([]GLPCHourlyInstrumentAssessment, error) {
+	req := request.Get(ctx, s.c, "/api/v5/users/glp-c/quote-assessment/hour/instrument", s.params).WithSign()
+	return request.DoList[GLPCHourlyInstrumentAssessment](req)
+}
+
+// GLPCHourlyInstrumentAssessment is one ended hour's GLP-C qualification result
+// for an instrument. HourStatus is QUALIFIED, NOT_QUALIFIED or DELAYED (ended
+// but not finalized, in which case FinalizedAt is zero).
+type GLPCHourlyInstrumentAssessment struct {
+	InstrumentIDCode      string                 `json:"instIdCode"`
+	InstrumentType        GLPCInstType           `json:"instType"`
+	InstrumentID          string                 `json:"instId"`
+	AssessmentHour        time.Time              `json:"assessmentHour,format:unixmilli"`
+	InstrumentGroup       string                 `json:"instGroup"`
+	Threshold             decimal.Decimal        `json:"threshold"`
+	RequiredHourlyUptime  decimal.Decimal        `json:"requiredHourlyUptime"`
+	QualifiedMinutes      decimal.Decimal        `json:"qualifiedMinutes"`
+	NotQualifiedMinutes   decimal.Decimal        `json:"notQualifiedMinutes"`
+	HourlyUptime          decimal.Decimal        `json:"hourlyUptime"`
+	HourStatus            string                 `json:"hourStatus"`
+	IntendedEffectiveHour time.Time              `json:"intendedEffectiveHour,format:unixmilli"`
+	FinalizedAt           time.Time              `json:"finalizedAt,format:unixmilli"`
+	MinuteStatusDetail    []GLPCMinuteStatusItem `json:"minuteStatusDetail"`
+}
+
+// GLPCMinuteStatusItem is one minute's qualification status within an hourly
+// instrument assessment.
+type GLPCMinuteStatusItem struct {
+	MinuteTimestamp time.Time `json:"minuteTs,format:unixmilli"`
+	MinuteStatus    string    `json:"minuteStatus"`
+	ReasonCode      string    `json:"reasonCode"`
+}
+
+// GetGLPCHourlyAssessmentSummaryService -- GET /api/v5/users/glp-c/quote-assessment/hour/summary (Read)
+//
+// Retrieves hourly qualified instrument counts and the calculated GLP-C tier,
+// sorted ascending by assessmentHour (SPOT before SWAP in the same hour). The
+// current hour can be included. Rate limit: 5 requests per second per User ID.
+type GetGLPCHourlyAssessmentSummaryService struct {
+	c      *Client
+	params map[string]string
+}
+
+// NewGetGLPCHourlyAssessmentSummaryService requires the inclusive begin and end
+// timestamps (within the last 72 hours, end not later than request time).
+func (c *Client) NewGetGLPCHourlyAssessmentSummaryService(beginTs, endTs time.Time) *GetGLPCHourlyAssessmentSummaryService {
+	return &GetGLPCHourlyAssessmentSummaryService{
+		c: c,
+		params: map[string]string{
+			"beginTs": strconv.FormatInt(beginTs.UnixMilli(), 10),
+			"endTs":   strconv.FormatInt(endTs.UnixMilli(), 10),
+		},
+	}
+}
+
+// SetInstType filters by instrument category (SPOT or PERP, including X-Perp).
+// Returns both categories if omitted.
+func (s *GetGLPCHourlyAssessmentSummaryService) SetInstType(instType GLPCInstType) *GetGLPCHourlyAssessmentSummaryService {
+	s.params["instType"] = string(instType)
 	return s
 }
 
-// SetBefore paginates to records newer than the given assessStartTime.
-func (s *GetGLPCPerformanceHistoryService) SetBefore(t time.Time) *GetGLPCPerformanceHistoryService {
-	s.params["before"] = strconv.FormatInt(t.UnixMilli(), 10)
-	return s
+func (s *GetGLPCHourlyAssessmentSummaryService) Do(ctx context.Context) ([]GLPCHourlyAssessmentSummary, error) {
+	req := request.Get(ctx, s.c, "/api/v5/users/glp-c/quote-assessment/hour/summary", s.params).WithSign()
+	return request.DoList[GLPCHourlyAssessmentSummary](req)
 }
 
-// SetLimit caps the number of results returned (default 100, max 100).
-func (s *GetGLPCPerformanceHistoryService) SetLimit(limit int) *GetGLPCPerformanceHistoryService {
-	s.params["limit"] = strconv.Itoa(limit)
-	return s
-}
-
-func (s *GetGLPCPerformanceHistoryService) Do(ctx context.Context) ([]GLPCPerformanceHistory, error) {
-	req := request.Get(ctx, s.c, "/api/v5/users/glp/c/history/performance", s.params).WithSign()
-	return request.DoList[GLPCPerformanceHistory](req)
-}
-
-// GLPCPerformanceHistory is one aggregated historical GLP-C assessment period
-// for a registered pair. QualifiedRate is a decimal fraction ("0.8333" = 83.33%).
-type GLPCPerformanceHistory struct {
-	InstrumentID        string          `json:"instId"`
-	InstrumentType      InstType        `json:"instType"`
-	AssessmentStartTime time.Time       `json:"assessStartTime,format:unixmilli"`
-	AssessmentEndTime   time.Time       `json:"assessEndTime,format:unixmilli"`
-	QualifiedHours      decimal.Decimal `json:"qualifiedHours"`
-	TotalHours          decimal.Decimal `json:"totalHours"`
-	QualifiedRate       decimal.Decimal `json:"qualifiedRate"`
+// GLPCHourlyAssessmentSummary is one hourly GLP-C tier summary record.
+// InstrumentType is SPOT or SWAP (including X-Perp). State is in_progress,
+// finalized or delayed. Tier is "1" (>=40, VIP 9 Maker), "2" (30-39, VIP 8),
+// "3" (20-29, VIP 7), "4" (10-19, VIP 6), or "" if fewer than 10 or unknown.
+type GLPCHourlyAssessmentSummary struct {
+	AssessmentHour            time.Time       `json:"assessmentHour,format:unixmilli"`
+	InstrumentType            GLPCInstType    `json:"instType"`
+	State                     string          `json:"state"`
+	RegisteredInstrumentCount decimal.Decimal `json:"registeredInstCount"`
+	QualifiedInstrumentCount  decimal.Decimal `json:"qualifiedInstCount"`
+	QualifiedInstrumentRatio  decimal.Decimal `json:"qualifiedInstRatio"`
+	Tier                      string          `json:"tier"`
+	IntendedEffectiveHour     time.Time       `json:"intendedEffectiveHour,format:unixmilli"`
 }

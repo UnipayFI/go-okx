@@ -16,14 +16,13 @@ func scodeErr(sCode, sMsg string) error {
 
 // Err returns the per-item API error each batch result carries, or nil when that
 // item succeeded.
-func (r OrderResult) Err() error            { return scodeErr(r.SCode, r.SMsg) }
-func (r AmendResult) Err() error            { return scodeErr(r.SCode, r.SMsg) }
-func (r AlgoResult) Err() error             { return scodeErr(r.SCode, r.SMsg) }
-func (r GridResult) Err() error             { return scodeErr(r.SCode, r.SMsg) }
-func (r RfqCancelAck) Err() error           { return scodeErr(r.SCode, r.SMsg) }
-func (r RfqQuoteCancelAck) Err() error      { return scodeErr(r.SCode, r.SMsg) }
-func (r SprdOrderAck) Err() error           { return scodeErr(r.SCode, r.SMsg) }
-func (r SprdAmendAck) Err() error           { return scodeErr(r.SCode, r.SMsg) }
-func (r SprdAlgoAck) Err() error            { return scodeErr(r.SCode, r.SMsg) }
-func (r RecurringResult) Err() error        { return scodeErr(r.SCode, r.SMsg) }
-func (r GLPCRegisterPairResult) Err() error { return scodeErr(r.SCode, r.SMsg) }
+func (r OrderResult) Err() error       { return scodeErr(r.SCode, r.SMsg) }
+func (r AmendResult) Err() error       { return scodeErr(r.SCode, r.SMsg) }
+func (r AlgoResult) Err() error        { return scodeErr(r.SCode, r.SMsg) }
+func (r GridResult) Err() error        { return scodeErr(r.SCode, r.SMsg) }
+func (r RfqCancelAck) Err() error      { return scodeErr(r.SCode, r.SMsg) }
+func (r RfqQuoteCancelAck) Err() error { return scodeErr(r.SCode, r.SMsg) }
+func (r SprdOrderAck) Err() error      { return scodeErr(r.SCode, r.SMsg) }
+func (r SprdAmendAck) Err() error      { return scodeErr(r.SCode, r.SMsg) }
+func (r SprdAlgoAck) Err() error       { return scodeErr(r.SCode, r.SMsg) }
+func (r RecurringResult) Err() error   { return scodeErr(r.SCode, r.SMsg) }
